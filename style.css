@@ -1,0 +1,278 @@
+body {
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+}
+
+#basePage {
+    background-color: #121212;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#nebraskaImg {
+    width: 60px;
+    height: 35px;
+}
+
+#nebraskaLink {
+    width: 60px;
+    height: 35px;
+}
+
+#header {
+    padding: 0px;
+    height: 57px;
+    display: flex;
+    justify-content: center;
+    border-bottom: 1px solid rgb(136, 136, 136);
+}
+
+#headerContents {
+    width: 768px;
+    display: flex;
+    padding: 8px 4px;
+}
+
+#headerTitle {
+    padding: 0px;
+    margin: 0px;
+    text-align: center;
+    flex-grow: 1;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 36px;
+    letter-spacing: -0.04em;
+}
+
+#content {
+    padding: 28px 28px 10vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    max-width: 1000px;
+    text-align: center;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#progressDiv {
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    border-top: 2px solid rgb(136, 136, 136);
+    border-bottom: 2px solid rgb(136, 136, 136);
+}
+
+#progressBar {
+    display: flex;
+    flex-grow: 1;
+    height: 100%;
+    width: 100%;
+    max-width: 800px;
+    border-left: 1px solid rgb(136, 136, 136);
+    border-right: 1px solid rgb(136, 136, 136);
+}
+
+#play1 {
+    flex-grow: 1;
+    border-right: 1px solid rgb(136, 136, 136);
+}
+
+#play2 {
+    flex-grow: 1;
+    border-right: 1px solid rgb(136, 136, 136);
+}
+
+#play3 {
+    flex-grow: 2;
+    border-right: 1px solid rgb(136, 136, 136);
+}
+
+#play4 {
+    flex-grow: 4;
+    border-right: 1px solid rgb(136, 136, 136);
+}
+
+#play5 {
+    flex-grow: 4;
+    border-right: 1px solid rgb(136, 136, 136);
+}
+
+#play6 {
+    flex-grow: 4;
+}
+
+#searchDiv {
+    padding-top: 2vh;
+    padding-bottom: 30vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    max-width: 800px;
+    text-align: center;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#playButtonRow {
+    padding-bottom: 3vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    max-width: 800px;
+    text-align: center;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#currentTimePlayingDiv {
+    display: flex;
+    justify-content: start;
+}
+
+#playButtonDiv {
+    display: flex;
+    justify-content: center;
+}
+
+#totalTimeDiv {
+    display: flex;
+    justify-content: end;
+}
+
+#playButton {
+    width: 50px;
+    border-radius: 50%;
+    height: 50px;
+    background-color: #fff;
+    color: #000;
+}
+
+#playButton:hover {
+    transform: scale(1.06);
+}
+
+#pauseButton {
+    width: 50px;
+    border-radius: 50%;
+    height: 50px;
+    background-color: #fff;
+    color: #000;
+}
+
+#pauseButton:hover {
+    transform: scale(1.06);
+}
+
+#searchBarRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    max-width: 800px;
+    text-align: center;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#searchInput {
+    width: 800px;
+    height: 7vh;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    padding-left: 25px;
+}
+
+#submissionRow {
+    padding-top: 3vh;
+    padding-bottom: 8vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    max-width: 800px;
+    text-align: center;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#skipDiv {
+    display: flex;
+    justify-content: start;
+}
+
+#skipButton {
+    height: 50px;
+    width: 125px;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    background-color:rgb(100, 100, 100);
+    color: #fff;
+    border-radius: 10px;
+}
+
+#submitButtonDiv {
+    display: flex;
+    justify-content: end;
+}
+
+#submitButton {
+    height: 50px;
+    width: 125px;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    background-color:rgba(0, 248, 33, 0.575);
+    color: #fff;
+    border-radius: 10px;
+}
+
+.foreground {
+    color: #fff;
+}
+
+.guessBox {
+    width: 800px;
+    height: 50px;
+    border: 1px solid rgb(136, 136, 136);
+    margin-bottom: 10px;
+}
+
+.row {
+    width: 33%;
+}
+
+a:hover {
+    cursor: pointer;
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+* {
+    font-family: "Noto Sans", sans-serif;
+    box-sizing: border-box;
+}
