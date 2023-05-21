@@ -51,7 +51,7 @@
         <div id="header">
             <div id="headerContents">
                 <a class="foreground" id="nebraskaLink" href="https://nburbach3.github.io/Portfolio/" target="_blank">
-                    <img src="/images/nebraskaN.png" id="nebraskaImg">
+                    <img src="images/nebraskaN.png" id="nebraskaImg">
                 </a>
                 <h1 class="foreground" id="headerTitle">My Heardle</h1>
             </div>
@@ -59,10 +59,21 @@
         <div id="content">
             <div id="guessBoxes">
                 <div id="guessBox1" class="guessBox">
-                    <div class="skipped" hidden="true">SKIPPED</div>
-                    <div class="wrong" hidden="true">SKIPPED</div>
-                    <div class="partiallyCorrect" hidden="true">SKIPPED</div>
-                    <div class="correct" hidden="true">SKIPPED</div>
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText"></p>
                 </div>
                 <div id="guessBox2" class="guessBox">
 
@@ -109,14 +120,14 @@
                     <p class="foreground">0:01</p>
                 </div>
                 <div id="playButtonDiv" class="row">
-                    <button id="playButton">
+                    <button id="playButton" class="spacedText">
                         <svg role="img" height="16" width="16" viewBox="0 0 16 16">
                             <path
                                 d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288V1.713z">
                             </path>
                         </svg>
                     </button>
-                    <button id="pauseButton" hidden="true">
+                    <button id="pauseButton" class="spacedText" hidden="true">
                         <svg role="img" height="16" width="16" viewBox="0 0 16 16">
                             <path
                                 d="M2.7 1a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7H2.7zm8 0a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7h-2.6z">
@@ -133,13 +144,13 @@
             </div>
             <div id="submissionRow">
                 <div id="skipDiv" class="row">
-                    <button id="skipButton">
+                    <button id="skipButton" class="spacedText">
                         SKIP (+2s)
                     </button>
                 </div>
                 <div class="row"></div>
                 <div id="submitButtonDiv" class="row">
-                    <button id="submitButton">
+                    <button id="submitButton" class="spacedText">
                         SUBMIT
                     </button>
                 </div>

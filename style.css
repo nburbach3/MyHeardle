@@ -6,9 +6,6 @@ body {
 
 #basePage {
     background-color: #121212;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
 }
 
 #nebraskaImg {
@@ -115,7 +112,7 @@ body {
 
 #searchDiv {
     padding-top: 2vh;
-    padding-bottom: 30vh;
+    padding-bottom: 15vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -203,7 +200,6 @@ body {
 
 #submissionRow {
     padding-top: 3vh;
-    padding-bottom: 8vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -223,10 +219,6 @@ body {
 #skipButton {
     height: 50px;
     width: 125px;
-    font-family: sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.15em;
     background-color:rgb(100, 100, 100);
     color: #fff;
     border-radius: 10px;
@@ -240,10 +232,6 @@ body {
 #submitButton {
     height: 50px;
     width: 125px;
-    font-family: sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.15em;
     background-color:rgba(0, 248, 33, 0.575);
     color: #fff;
     border-radius: 10px;
@@ -258,10 +246,113 @@ body {
     height: 50px;
     border: 1px solid rgb(136, 136, 136);
     margin-bottom: 10px;
+    display: flex;
+    align-items: center;
 }
 
 .row {
     width: 33%;
+}
+
+.skipped {
+    width: 25px;
+    height: 25px;
+    border: 1px solid rgb(136, 136, 136);
+    margin-left: 10px;
+    margin-right: 15px;
+    border-radius: 5px;
+}
+
+.skippedText {
+    color:rgb(100, 100, 100);
+}
+
+.spacedText {
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+}
+
+.wrong {
+    width: 25px;
+    height: 25px;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.wrongX1 {
+    border-left: 1px solid red;
+    height: 25px;
+    width: 1px;
+    transform: rotate(45deg);
+    position: absolute;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.wrongX2 {
+    border-left: 1px solid red;
+    height: 25px;
+    width: 1px;
+    transform: rotate(-45deg);
+    position: absolute;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.partiallyCorrect {
+    width: 25px;
+    height: 25px;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.partiallyCorrectX1 {
+    border-left: 1px solid yellow;
+    height: 25px;
+    width: 1px;
+    transform: rotate(45deg);
+    position: absolute;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.partiallyCorrectX2 {
+    border-left: 1px solid yellow;
+    height: 25px;
+    width: 1px;
+    transform: rotate(-45deg);
+    position: absolute;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.correct {
+    width: 25px;
+    height: 25px;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.correctX1 {
+    border-left: 1px solid green;
+    height: 25px;
+    width: 1px;
+    transform: rotate(45deg);
+    position: absolute;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.correctX2 {
+    border-left: 1px solid green;
+    height: 25px;
+    width: 1px;
+    transform: rotate(-45deg);
+    position: absolute;
+    margin-left: 10px;
+    margin-right: 15px;
 }
 
 a:hover {
