@@ -21,25 +21,13 @@
         var paused;
         var timeLeftGlobal;
         var currentAttemptsNumber;
+        var songArray;
         const TOKEN = "https://accounts.spotify.com/api/token";
         const GET_SONGS = "https://api.spotify.com/v1/search"
         const PLAY_SONG = "https://api.spotify.com/v1/me/player/play";
         const PAUSE_SONG = "https://api.spotify.com/v1/me/player/pause";
         const GET_DEVICES = "https://api.spotify.com/v1/me/player/devices";
 
-        let song1 = {
-            artist: 'Machine Gun Kelly',
-            title: 'Bloody Valentine'
-        };
-        let song2 = {
-            artist: 'Breaking Benjamin',
-            title: 'Torn'
-        };
-        let song3 = {
-            artist: 'Linkin Park',
-            title: 'Powerless'
-        };
-        let songsList = [song1, song2, song3]
         $(document).ready(function () {
             let loadedPageAlready = localStorage.getItem("loadedPageAlready");
             if (!loadedPageAlready) {
@@ -58,7 +46,7 @@
                 handleRedirect();
             }
 
-            setGuessBoxes();
+            setFields();
 
             access_token = localStorage.getItem("access_token");
             getSongs();
@@ -76,7 +64,16 @@
                     alert("You have reached the maximum attempts.");
                     return;
                 }
-                
+
+                //TODO: validate the input so that the user must select a song, not just type. (On change listener?)
+                let guess = $("#searchInput").val();
+                if (!guess || !guess.trim()) {
+                    alert("You must select a song to guess.");
+                    return;
+                }
+
+                //TODO: implement checkGuess function
+                checkGuess(guess);
                 //TODO: set localstorage for guessBoxes to wrong/partial/correct after checking guess against song
 
                 if (currentAttempts) {
@@ -113,22 +110,32 @@
                         break;
                     default:
                 }
+
                 $("#skipButton").text(updatedText);
+
                 if (attempts) {
                     attempts = parseInt(attempts) + 1;
                 } else {
                     attempts = 1;
                 }
+
                 $("#guessBox" + attempts).children(".skipped").attr('hidden', false);
                 $("#guessBox" + attempts).children(".skippedText").attr('hidden', false);
+                let index = attempts + 1;
+                $("#play" + index).css("background-color", "rgb(65, 65, 65)");
+                currentAttemptsNumber = attempts;
                 localStorage.setItem("attemptNumber", attempts);
                 localStorage.setItem("guessBox" + attempts, "skip");
             });
         });
 
-        function setGuessBoxes() {
+        function setFields() {
             for (let i = 1; i <= 6; i++) {
                 let guessBox = localStorage.getItem("guessBox" + i);
+                if (guessBox && i != 6) {
+                    let index = i + 1;
+                    $("#play" + index).css("background-color", "rgb(65, 65, 65)");
+                }
                 switch(guessBox) {
                     case("skip"):
                         $("#guessBox" + i).children(".skipped").attr('hidden', false);
@@ -218,7 +225,7 @@
         function handleGetSongsResponse() {
             if (this.status == 200) {
                 let data = JSON.parse(this.responseText);
-                let songArray = data.tracks.items;
+                songArray = data.tracks.items;
                 randomSong = pickRandomSong(songArray);
             } else if (this.status == 401) {
                 refreshAccessToken();
@@ -538,23 +545,17 @@
         </div>
         <div id="progressDiv">
             <div id="progressBar">
-                <div id="play1">
-
+                <div id="play1" style="background-color: rgb(65, 65, 65);">
                 </div>
                 <div id="play2">
-
                 </div>
                 <div id="play3">
-
                 </div>
                 <div id="play4">
-
                 </div>
                 <div id="play5">
-
                 </div>
                 <div id="play6">
-
                 </div>
             </div>
         </div>
