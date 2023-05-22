@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="style.css">
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-    <!-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> -->
 
     <script>
         var SPOTIFY_CLIENT_ID = 'b88b3a6cf46c40daa767463a7f94c15e';
@@ -48,11 +46,12 @@
 
             setFields();
 
+            let storageSkipText = localStorage.getItem("skipText");
+            $("#skipButton").text(storageSkipText != "undefined" && storageSkipText != null ? storageSkipText : "SKIP (+1s)");
+
             access_token = localStorage.getItem("access_token");
             getSongs();
             getDevices();
-
-            // $("#searchDropdown").select2();
 
             $("#pauseButton").click(function () {
                 paused = "true";
@@ -60,21 +59,20 @@
 
             $("#submitButton").click(function () {
                 let currentAttempts = localStorage.getItem("attemptNumber");
-                if (currentAttempts == "5") {
+                if (currentAttempts == "6") {
+                    //TODO: show results page instead
                     alert("You have reached the maximum attempts.");
                     return;
                 }
 
-                //TODO: validate the input so that the user must select a song, not just type. (On change listener?)
+                let guessedSongId = $("#chosenSongId").val();
                 let guess = $("#searchInput").val();
-                if (!guess || !guess.trim()) {
-                    alert("You must select a song to guess.");
+                if (!guess || !guess.trim() || guessedSongId == '') {
+                    alert("You must select a song from the dropdown to guess.");
                     return;
                 }
 
-                //TODO: implement checkGuess function
-                checkGuess(guess);
-                //TODO: set localstorage for guessBoxes to wrong/partial/correct after checking guess against song
+                checkGuess();
 
                 if (currentAttempts) {
                     currentAttempts = parseInt(currentAttempts) + 1;
@@ -85,33 +83,15 @@
                 localStorage.setItem("attemptNumber", currentAttempts);
             });
 
-            $("#skipButton").click(function() {
+            $("#skipButton").click(function () {
                 let attempts = localStorage.getItem("attemptNumber");
                 if (attempts == "6") {
+                    //TODO: show results page instead
                     alert("You have reached the maximum attempts.");
                     return;
                 }
-                let updatedText;
-                switch (attempts) {
-                    case (null):
-                        updatedText = "SKIP (+2s)";
-                        break;
-                    case ("1"):
-                        updatedText = "SKIP (+4s)";
-                        break;
-                    case ("2"):
-                        updatedText = "SKIP (+4s)";
-                        break;
-                    case ("3"):
-                        updatedText = "SKIP (+4s)";
-                        break;
-                    case ("4"):
-                        updatedText = "SKIP (+4s)";
-                        break;
-                    default:
-                }
-
-                $("#skipButton").text(updatedText);
+                
+                setUpdatedSkipText(attempts);
 
                 if (attempts) {
                     attempts = parseInt(attempts) + 1;
@@ -127,6 +107,19 @@
                 localStorage.setItem("attemptNumber", attempts);
                 localStorage.setItem("guessBox" + attempts, "skip");
             });
+
+            window.onclick = function (event) {
+                if (!event.target.matches('#searchInput')) {
+
+                    let dropdowns = document.getElementsByClassName("dropdown-content");
+                    for (let i = 0; i < dropdowns.length; i++) {
+                        let openDropdown = dropdowns[i];
+                        if (openDropdown.classList.contains('show')) {
+                            openDropdown.classList.remove('show');
+                        }
+                    }
+                }
+            }
         });
 
         function setFields() {
@@ -136,22 +129,25 @@
                     let index = i + 1;
                     $("#play" + index).css("background-color", "rgb(65, 65, 65)");
                 }
-                switch(guessBox) {
-                    case("skip"):
+                switch (guessBox) {
+                    case ("skip"):
                         $("#guessBox" + i).children(".skipped").attr('hidden', false);
                         $("#guessBox" + i).children(".skippedText").attr('hidden', false);
                         break;
-                    case("wrong"):
+                    case ("wrong"):
                         $("#guessBox" + i).children(".wrong").attr('hidden', false);
                         $("#guessBox" + i).children(".guessedSongText").attr('hidden', false);
+                        $("#guessBox" + i).children(".guessedSongText").text(localStorage.getItem("guessBox" + i + "Text"));
                         break;
-                    case("partial"):
+                    case ("partial"):
                         $("#guessBox" + i).children(".partiallyCorrect").attr('hidden', false);
                         $("#guessBox" + i).children(".guessedSongText").attr('hidden', false);
+                        $("#guessBox" + i).children(".guessedSongText").text(localStorage.getItem("guessBox" + i + "Text"));
                         break;
-                    case("correct"):
+                    case ("correct"):
                         $("#guessBox" + i).children(".correct").attr('hidden', false);
                         $("#guessBox" + i).children(".guessedSongText").attr('hidden', false);
+                        $("#guessBox" + i).children(".guessedSongText").text(localStorage.getItem("guessBox" + i + "Text"));
                         break;
                     default:
                 }
@@ -226,6 +222,7 @@
             if (this.status == 200) {
                 let data = JSON.parse(this.responseText);
                 songArray = data.tracks.items;
+                setSongDropdown();
                 randomSong = pickRandomSong(songArray);
             } else if (this.status == 401) {
                 refreshAccessToken();
@@ -420,8 +417,123 @@
             callAuthorization(body);
         }
 
-        function filterSearch() {
+        function filterSearch(searchInput) {
+            $("#chosenSongId").val('');
+            let search = searchInput.value.toLowerCase();
+            if (search.trim() != '') {
+                $("#songsDropdown").addClass('show');
+            } else {
+                $("#songsDropdown").removeClass('show');
+            }
 
+            let songsList = $("#myUL").children('li');
+            for (let i = 0; i < songsList.length; i++) {
+                let a = songsList[i].firstChild;
+                if (a.innerHTML.toLowerCase().indexOf(search) > -1) {
+                    songsList[i].style.display = "";
+                } else {
+                    songsList[i].style.display = "none";
+                }
+            }
+        }
+
+        function setSongDropdown() {
+            for (let i = 0; i < songArray.length; i++) {
+                let song = songArray[i];
+                let elem = document.createElement("a");
+                elem.href = "#";
+                elem.addEventListener('click', function () {
+                    selectSong(this);
+                });
+                elem.textContent = song.name + " (";
+                for (let j = 0; j < song.artists.length; j++) {
+                    if (j == song.artists.length - 1) {
+                        elem.textContent += song.artists[j].name + ")";
+                    } else {
+                        elem.textContent += song.artists[j].name + ", ";
+                    }
+                }
+                elem.value = song.id;
+                let listElem = document.createElement("li");
+                listElem.appendChild(elem);
+                $("#myUL").append(listElem);
+            }
+            let dropdown = $("#songsDropdown");
+        }
+
+        function selectSong(anchorTag) {
+            $("#searchInput").val(anchorTag.textContent);
+            $("#chosenSongId").val(anchorTag.value);
+        }
+
+        function checkGuess() {
+            let guessedSongId = $("#chosenSongId").val();
+            let guessedSongText = $("#searchInput").val();
+            let storageAttempts = localStorage.getItem("attemptNumber");
+            let localCurrentAttempts = storageAttempts ? parseInt(storageAttempts) + 1: 1;
+
+            $("#guessBox" + localCurrentAttempts).children(".guessedSongText").text(guessedSongText);
+
+            let guessedSongArtists = guessedSongText.split("(")[1].split(")")[0].split(",");
+            for (let i = 0; i < guessedSongArtists.length; i++) {
+                guessedSongArtists[i] = guessedSongArtists[i].trim();
+            }
+            let correct;
+            let partiallyCorrect;
+
+            if (guessedSongId == randomSong.id) {
+                correct = "true";
+                $("#guessBox" + localCurrentAttempts).children(".correct").attr('hidden', false);
+                localStorage.setItem("guessBox" + localCurrentAttempts, "correct");
+            } else {
+                songArray.forEach(function (song) {
+                    song.artists.forEach(function (artist) {
+                        if (guessedSongArtists.includes(artist.name)) {
+                            partiallyCorrect = "true";
+                            $("#guessBox" + localCurrentAttempts).children(".partiallyCorrect").attr('hidden', false);
+                            localStorage.setItem("guessBox" + localCurrentAttempts, "partial");
+                        }
+                    });
+                });
+            }
+
+            if (!correct && !partiallyCorrect) {
+                $("#guessBox" + localCurrentAttempts).children(".wrong").attr('hidden', false);
+                localStorage.setItem("guessBox" + localCurrentAttempts, "wrong");
+            }
+
+            $("#guessBox" + localCurrentAttempts).children(".guessedSongText").attr('hidden', false);
+            localStorage.setItem("guessBox" + localCurrentAttempts + "Text", guessedSongText);
+
+            let index = localCurrentAttempts + 1;
+            $("#play" + index).css("background-color", "rgb(65, 65, 65)");
+
+            setUpdatedSkipText(storageAttempts);
+        }
+
+        function setUpdatedSkipText(attempts) {
+            let updatedText;
+                switch (attempts) {
+                    case (null):
+                        updatedText = "SKIP (+2s)";
+                        break;
+                    case ("1"):
+                        updatedText = "SKIP (+4s)";
+                        break;
+                    case ("2"):
+                        updatedText = "SKIP (+4s)";
+                        break;
+                    case ("3"):
+                        updatedText = "SKIP (+4s)";
+                        break;
+                    case ("4"):
+                        updatedText = "SKIP (+4s)";
+                        break;
+                    default:
+                }
+
+                $("#skipButton").text(updatedText);
+                localStorage.setItem("skipText", updatedText);
         }
     </script>
 
@@ -454,7 +566,7 @@
                         <div class="correctX1"></div>
                         <div class="correctX2"></div>
                     </div>
-                    <p class="guessedSongText"></p>
+                    <p class="guessedSongText foreground"></p>
                 </div>
                 <div id="guessBox2" class="guessBox">
                     <div class="skipped" hidden="true"></div>
@@ -471,7 +583,7 @@
                         <div class="correctX1"></div>
                         <div class="correctX2"></div>
                     </div>
-                    <p class="guessedSongText"></p>
+                    <p class="guessedSongText foreground"></p>
                 </div>
                 <div id="guessBox3" class="guessBox">
                     <div class="skipped" hidden="true"></div>
@@ -488,7 +600,7 @@
                         <div class="correctX1"></div>
                         <div class="correctX2"></div>
                     </div>
-                    <p class="guessedSongText"></p>
+                    <p class="guessedSongText foreground"></p>
                 </div>
                 <div id="guessBox4" class="guessBox">
                     <div class="skipped" hidden="true"></div>
@@ -505,7 +617,7 @@
                         <div class="correctX1"></div>
                         <div class="correctX2"></div>
                     </div>
-                    <p class="guessedSongText"></p>
+                    <p class="guessedSongText foreground"></p>
                 </div>
                 <div id="guessBox5" class="guessBox">
                     <div class="skipped" hidden="true"></div>
@@ -522,7 +634,7 @@
                         <div class="correctX1"></div>
                         <div class="correctX2"></div>
                     </div>
-                    <p class="guessedSongText"></p>
+                    <p class="guessedSongText foreground"></p>
                 </div>
                 <div id="guessBox6" class="guessBox">
                     <div class="skipped" hidden="true"></div>
@@ -539,7 +651,7 @@
                         <div class="correctX1"></div>
                         <div class="correctX2"></div>
                     </div>
-                    <p class="guessedSongText"></p>
+                    <p class="guessedSongText foreground"></p>
                 </div>
             </div>
         </div>
@@ -586,7 +698,12 @@
             </div>
             <div id="searchBarRow">
                 <input id="searchInput" type="text" placeholder="Search for an artist / song title"
-                    onkeyup="filterSearch()">
+                    onkeyup="filterSearch(this)">
+                <div id="songsDropdown" class="dropdown-content">
+                    <ul id="myUL">
+                    </ul>
+                    <div id="chosenSongId" hidden="true"></div>
+                </div>
             </div>
             <div id="submissionRow">
                 <div id="skipDiv" class="row">
