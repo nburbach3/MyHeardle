@@ -79,7 +79,7 @@ body {
     max-width: 800px;
     border-left: 1px solid rgb(136, 136, 136);
     border-right: 1px solid rgb(136, 136, 136);
-}
+} 
 
 #play1 {
     flex-grow: 1;
@@ -108,6 +108,10 @@ body {
 
 #play6 {
     flex-grow: 4;
+}
+
+.playProgressBar {
+    background-position: left;
 }
 
 #searchDiv {
@@ -219,7 +223,7 @@ body {
 #skipButton {
     height: 50px;
     width: 125px;
-    background-color:rgb(100, 100, 100);
+    background-color: rgb(100, 100, 100);
     color: #fff;
     border-radius: 10px;
 }
@@ -232,7 +236,7 @@ body {
 #submitButton {
     height: 50px;
     width: 125px;
-    background-color:rgba(0, 248, 33, 0.575);
+    background-color: rgba(0, 248, 33, 0.575);
     color: #fff;
     border-radius: 10px;
 }
@@ -264,7 +268,7 @@ body {
 }
 
 .skippedText {
-    color:rgb(100, 100, 100);
+    color: rgb(100, 100, 100);
 }
 
 .spacedText {
@@ -368,7 +372,7 @@ body {
 }
 
 .show {
-    display:block; 
+    display: block;
 }
 
 #myUL {
@@ -383,7 +387,7 @@ body {
     text-decoration: none;
     display: block;
 }
-  
+
 .dropdown-content a:hover {
     background-color: #cecece
 }

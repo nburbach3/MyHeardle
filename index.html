@@ -20,6 +20,7 @@
         var timeLeftGlobal;
         var currentAttemptsNumber;
         var songArray;
+        var counterGlobal = 0;
         const TOKEN = "https://accounts.spotify.com/api/token";
         const GET_SONGS = "https://api.spotify.com/v1/search"
         const PLAY_SONG = "https://api.spotify.com/v1/me/player/play";
@@ -90,7 +91,7 @@
                     alert("You have reached the maximum attempts.");
                     return;
                 }
-                
+
                 setUpdatedSkipText(attempts);
 
                 if (attempts) {
@@ -250,11 +251,17 @@
         }
 
         function playSong() {
+            let attempts = localStorage.getItem("attemptNumber");
+            if (attempts == "6") {
+                alert("You already finished playing.");
+                return;
+            }
+
             paused = "false";
             $("#playButton").hide();
             $("#pauseButton").show();
 
-            let attempts = localStorage.getItem("attemptNumber");
+            
             let position_ms = 0;
             if (timeLeftGlobal) {
                 switch (attempts) {
@@ -328,7 +335,7 @@
                 }
             }
 
-            let myFunc = setInterval(function () {
+            let timeInterval = setInterval(function () {
                 let currentAttempts = localStorage.getItem("attemptNumber");
                 if (parseInt(currentAttempts) > parseInt(attempts)) {
                     switch (currentAttempts) {
@@ -336,18 +343,15 @@
                             countDownTime += 1000;
                             break;
                         case ("2"):
-                            countDownTime += 1000;
+                            countDownTime += 2000;
                             break;
                         case ("3"):
-                            countDownTime += 2000;
+                            countDownTime += 4000;
                             break;
                         case ("4"):
                             countDownTime += 4000;
                             break;
                         case ("5"):
-                            countDownTime += 4000;
-                            break;
-                        case ("6"):
                             countDownTime += 4000;
                             break;
                         default:
@@ -359,19 +363,41 @@
                 if (paused != "true") {
                     timeLeft = countDownTime - now;
                 }
+
                 timeLeftGlobal = timeLeft;
+
                 if (paused == "true") {
                     countDownTime = now + timeLeft;
                     $("#pauseButton").hide();
                     $("#playButton").show();
                 } else if (timeLeft <= 0) {
-                    clearInterval(myFunc);
+                    clearInterval(timeInterval);
                     pauseSong();
                     $("#pauseButton").hide();
                     $("#playButton").show();
                     timeLeftGlobal = 0;
                 }
             }, 1);
+
+            let timerTextInterval = setInterval(function() {
+                let counterLocal = counterGlobal;
+                if (paused != "true") {
+                    counterLocal++;
+                    let secondsPlayed = Math.floor(counterLocal);
+                    if (secondsPlayed < 10) {
+                        secondsPlayed = "0" + secondsPlayed;
+                    }
+                    $("#currentTimePlayingText").text("0:" + secondsPlayed);
+                }
+
+                counterGlobal = counterLocal;
+
+                if (timeLeftGlobal <= 0) {
+                    clearInterval(timerTextInterval);
+                    counterGlobal = 0;
+                    $("#currentTimePlayingText").text("0:00");
+                }
+            }, 1000);
         }
 
         function handlePauseSongResponse() {
@@ -470,7 +496,7 @@
             let guessedSongId = $("#chosenSongId").val();
             let guessedSongText = $("#searchInput").val();
             let storageAttempts = localStorage.getItem("attemptNumber");
-            let localCurrentAttempts = storageAttempts ? parseInt(storageAttempts) + 1: 1;
+            let localCurrentAttempts = storageAttempts ? parseInt(storageAttempts) + 1 : 1;
 
             $("#guessBox" + localCurrentAttempts).children(".guessedSongText").text(guessedSongText);
 
@@ -513,27 +539,27 @@
 
         function setUpdatedSkipText(attempts) {
             let updatedText;
-                switch (attempts) {
-                    case (null):
-                        updatedText = "SKIP (+2s)";
-                        break;
-                    case ("1"):
-                        updatedText = "SKIP (+4s)";
-                        break;
-                    case ("2"):
-                        updatedText = "SKIP (+4s)";
-                        break;
-                    case ("3"):
-                        updatedText = "SKIP (+4s)";
-                        break;
-                    case ("4"):
-                        updatedText = "SKIP (+4s)";
-                        break;
-                    default:
-                }
+            switch (attempts) {
+                case (null):
+                    updatedText = "SKIP (+2s)";
+                    break;
+                case ("1"):
+                    updatedText = "SKIP (+4s)";
+                    break;
+                case ("2"):
+                    updatedText = "SKIP (+4s)";
+                    break;
+                case ("3"):
+                    updatedText = "SKIP (+4s)";
+                    break;
+                case ("4"):
+                    updatedText = "SKIP (+4s)";
+                    break;
+                default:
+            }
 
-                $("#skipButton").text(updatedText);
-                localStorage.setItem("skipText", updatedText);
+            $("#skipButton").text(updatedText);
+            localStorage.setItem("skipText", updatedText);
         }
     </script>
 
@@ -674,7 +700,7 @@
         <div id="searchDiv">
             <div id="playButtonRow">
                 <div id="currentTimePlayingDiv" class="row">
-                    <p class="foreground">0:01</p>
+                    <p id="currentTimePlayingText" class="foreground">0:00</p>
                 </div>
                 <div id="playButtonDiv" class="row">
                     <button id="playButton" onclick="playSong()" class="spacedText">
