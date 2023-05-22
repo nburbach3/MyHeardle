@@ -9,8 +9,7 @@ body {
 }
 
 #results {
-    padding: 28px 28px 91vh;
-    display: flex;
+    padding: 28px 28px 9vh;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -42,7 +41,6 @@ body {
 
 #resultMessageDiv {
     height: 300px;
-    width: 300px;
 }
 
 #resultMessage {
@@ -54,7 +52,6 @@ body {
     flex-grow: 1;
     height: 20px;
     width: 100%;
-    max-width: 300px;
     border: 1px solid rgb(136, 136, 136);
 }
 
@@ -279,6 +276,7 @@ body {
     font-size: 20px;
     font-weight: 600;
     padding-left: 25px;
+    z-index: 999;
 }
 
 #submissionRow {

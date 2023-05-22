@@ -239,7 +239,7 @@
         }
 
         function getSongs() {
-            let url = GET_SONGS + "?query=2000-2020&type=track&include_external=audio&market=US&offset=0&limit=50";
+            let url = GET_SONGS + "?query=year:2000-2020 genre:pop&type=track&include_external=audio&market=US&offset=0&limit=50";
             callAPI("GET", url, null, handleGetSongsResponse);
         }
 
