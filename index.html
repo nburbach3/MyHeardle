@@ -30,10 +30,6 @@
         const GET_DEVICES = "https://api.spotify.com/v1/me/player/devices";
 
         $(document).ready(function () {
-            let loadedPageAlready = localStorage.getItem("loadedPageAlready");
-            if (!loadedPageAlready) {
-                requestAuthorization();
-            }
             let storageClientId = localStorage.getItem("client_id");
             if (storageClientId) {
                 SPOTIFY_CLIENT_ID = storageClientId;
@@ -45,6 +41,11 @@
 
             if (window.location.search.length > 0) {
                 handleRedirect();
+            }
+
+            let loadedPageAlready = localStorage.getItem("loadedPageAlready");
+            if (!loadedPageAlready) {
+                requestAuthorization();
             }
 
             setFields();
