@@ -21,6 +21,8 @@
         var currentAttemptsNumber;
         var songArray;
         var counterGlobal = 0;
+        var correct;
+        var partiallyCorrect;
         const TOKEN = "https://accounts.spotify.com/api/token";
         const GET_SONGS = "https://api.spotify.com/v1/search"
         const PLAY_SONG = "https://api.spotify.com/v1/me/player/play";
@@ -82,15 +84,14 @@
                 }
                 currentAttemptsNumber = currentAttempts;
                 localStorage.setItem("attemptNumber", currentAttempts);
+
+                if (currentAttemptsNumber == 6) {
+                    finishGame();
+                }
             });
 
             $("#skipButton").click(function () {
                 let attempts = localStorage.getItem("attemptNumber");
-                if (attempts == "6") {
-                    //TODO: show results page instead
-                    alert("You have reached the maximum attempts.");
-                    return;
-                }
 
                 setUpdatedSkipText(attempts);
 
@@ -107,6 +108,10 @@
                 currentAttemptsNumber = attempts;
                 localStorage.setItem("attemptNumber", attempts);
                 localStorage.setItem("guessBox" + attempts, "skip");
+
+                if (currentAttemptsNumber == 6) {
+                    finishGame();
+                }
             });
 
             window.onclick = function (event) {
@@ -225,6 +230,7 @@
                 songArray = data.tracks.items;
                 setSongDropdown();
                 randomSong = pickRandomSong(songArray);
+                setInitialResults(randomSong);
             } else if (this.status == 401) {
                 refreshAccessToken();
             } else {
@@ -233,8 +239,25 @@
         }
 
         function getSongs() {
-            let url = GET_SONGS + "?query=breaking+benjamin&type=track&include_external=audio&market=US&offset=0&limit=50";
+            let url = GET_SONGS + "?query=2000-2020&type=track&include_external=audio&market=US&offset=0&limit=50";
             callAPI("GET", url, null, handleGetSongsResponse);
+        }
+
+        function setInitialResults(randomSong) {
+            
+            $("#resultImage").attr('src', randomSong.album.images[0].url);
+
+            let songName = randomSong.name + " (";
+
+            for (let i = 0; i < randomSong.artists.length; i++) {
+                if (i == randomSong.artists.length - 1) {
+                    songName += randomSong.artists[i].name + ")";
+                } else {
+                    songName += randomSong.artists[i].name + ", ";
+                }
+            }
+            $("#resultSong").text(songName);
+            $("#spotifyLink").attr('href', randomSong.external_urls.spotify);
         }
 
         function pickRandomSong(songArray) {
@@ -261,7 +284,6 @@
             $("#playButton").hide();
             $("#pauseButton").show();
 
-            
             let position_ms = 0;
             if (timeLeftGlobal) {
                 switch (attempts) {
@@ -379,7 +401,7 @@
                 }
             }, 1);
 
-            let timerTextInterval = setInterval(function() {
+            let timerTextInterval = setInterval(function () {
                 let counterLocal = counterGlobal;
                 if (paused != "true") {
                     counterLocal++;
@@ -504,8 +526,8 @@
             for (let i = 0; i < guessedSongArtists.length; i++) {
                 guessedSongArtists[i] = guessedSongArtists[i].trim();
             }
-            let correct;
-            let partiallyCorrect;
+            correct = false;
+            partiallyCorrect = false;
 
             if (guessedSongId == randomSong.id) {
                 correct = "true";
@@ -535,6 +557,10 @@
             $("#play" + index).css("background-color", "rgb(65, 65, 65)");
 
             setUpdatedSkipText(storageAttempts);
+
+            if (correct == "true") {
+                finishGame();
+            }
         }
 
         function setUpdatedSkipText(attempts) {
@@ -561,6 +587,42 @@
             $("#skipButton").text(updatedText);
             localStorage.setItem("skipText", updatedText);
         }
+
+        function finishGame() {
+            for (let i = 0; i <= 6; i++) {
+                let guess = localStorage.getItem("guessBox" + i);
+                switch(guess) {
+                    case("wrong"):
+                        $("#resultGuess" + i).attr('style', 'background-color: red;');
+                        break;
+                    case("skip"):
+                        $("#resultGuess" + i).attr('style', 'background-color: rgb(65, 65, 65);');
+                        break;
+                    case("partial"):
+                        $("#resultGuess" + i).attr('style', 'background-color: yellow;');
+                        break;
+                    case("correct"):
+                        $("#resultGuess" + i).attr('style', 'background-color: green;');
+                        break;
+                    default:
+                }
+            }
+            let attempts = localStorage.getItem("attemptNumber");
+            if (!attempts) {
+                attempts = 1;
+            } else {
+                attempts++;
+            }
+
+            if (correct == "true") {
+                $("#resultMessage").text("You won in " + attempts + " attempt(s)!");
+            } else {
+                $("#resultMessage").text("You did not guess the correct song :(");
+            }
+
+            $("#game").attr('hidden', true);
+            $("#results").attr('hidden', false);
+        }
     </script>
 
 </head>
@@ -575,173 +637,205 @@
                 <h1 class="foreground" id="headerTitle">My Heardle</h1>
             </div>
         </div>
-        <div id="content">
-            <div id="guessBoxes">
-                <div id="guessBox1" class="guessBox">
-                    <div class="skipped" hidden="true"></div>
-                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
-                    <div class="wrong" hidden="true">
-                        <div class="wrongX1"></div>
-                        <div class="wrongX2"></div>
+        <div id="game">
+            <div id="content">
+                <div id="guessBoxes">
+                    <div id="guessBox1" class="guessBox">
+                        <div class="skipped" hidden="true"></div>
+                        <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                        <div class="wrong" hidden="true">
+                            <div class="wrongX1"></div>
+                            <div class="wrongX2"></div>
+                        </div>
+                        <div class="partiallyCorrect" hidden="true">
+                            <div class="partiallyCorrectX1"></div>
+                            <div class="partiallyCorrectX2"></div>
+                        </div>
+                        <div class="correct" hidden="true">
+                            <div class="correctX1"></div>
+                            <div class="correctX2"></div>
+                        </div>
+                        <p class="guessedSongText foreground"></p>
                     </div>
-                    <div class="partiallyCorrect" hidden="true">
-                        <div class="partiallyCorrectX1"></div>
-                        <div class="partiallyCorrectX2"></div>
+                    <div id="guessBox2" class="guessBox">
+                        <div class="skipped" hidden="true"></div>
+                        <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                        <div class="wrong" hidden="true">
+                            <div class="wrongX1"></div>
+                            <div class="wrongX2"></div>
+                        </div>
+                        <div class="partiallyCorrect" hidden="true">
+                            <div class="partiallyCorrectX1"></div>
+                            <div class="partiallyCorrectX2"></div>
+                        </div>
+                        <div class="correct" hidden="true">
+                            <div class="correctX1"></div>
+                            <div class="correctX2"></div>
+                        </div>
+                        <p class="guessedSongText foreground"></p>
                     </div>
-                    <div class="correct" hidden="true">
-                        <div class="correctX1"></div>
-                        <div class="correctX2"></div>
+                    <div id="guessBox3" class="guessBox">
+                        <div class="skipped" hidden="true"></div>
+                        <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                        <div class="wrong" hidden="true">
+                            <div class="wrongX1"></div>
+                            <div class="wrongX2"></div>
+                        </div>
+                        <div class="partiallyCorrect" hidden="true">
+                            <div class="partiallyCorrectX1"></div>
+                            <div class="partiallyCorrectX2"></div>
+                        </div>
+                        <div class="correct" hidden="true">
+                            <div class="correctX1"></div>
+                            <div class="correctX2"></div>
+                        </div>
+                        <p class="guessedSongText foreground"></p>
                     </div>
-                    <p class="guessedSongText foreground"></p>
+                    <div id="guessBox4" class="guessBox">
+                        <div class="skipped" hidden="true"></div>
+                        <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                        <div class="wrong" hidden="true">
+                            <div class="wrongX1"></div>
+                            <div class="wrongX2"></div>
+                        </div>
+                        <div class="partiallyCorrect" hidden="true">
+                            <div class="partiallyCorrectX1"></div>
+                            <div class="partiallyCorrectX2"></div>
+                        </div>
+                        <div class="correct" hidden="true">
+                            <div class="correctX1"></div>
+                            <div class="correctX2"></div>
+                        </div>
+                        <p class="guessedSongText foreground"></p>
+                    </div>
+                    <div id="guessBox5" class="guessBox">
+                        <div class="skipped" hidden="true"></div>
+                        <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                        <div class="wrong" hidden="true">
+                            <div class="wrongX1"></div>
+                            <div class="wrongX2"></div>
+                        </div>
+                        <div class="partiallyCorrect" hidden="true">
+                            <div class="partiallyCorrectX1"></div>
+                            <div class="partiallyCorrectX2"></div>
+                        </div>
+                        <div class="correct" hidden="true">
+                            <div class="correctX1"></div>
+                            <div class="correctX2"></div>
+                        </div>
+                        <p class="guessedSongText foreground"></p>
+                    </div>
+                    <div id="guessBox6" class="guessBox">
+                        <div class="skipped" hidden="true"></div>
+                        <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                        <div class="wrong" hidden="true">
+                            <div class="wrongX1"></div>
+                            <div class="wrongX2"></div>
+                        </div>
+                        <div class="partiallyCorrect" hidden="true">
+                            <div class="partiallyCorrectX1"></div>
+                            <div class="partiallyCorrectX2"></div>
+                        </div>
+                        <div class="correct" hidden="true">
+                            <div class="correctX1"></div>
+                            <div class="correctX2"></div>
+                        </div>
+                        <p class="guessedSongText foreground"></p>
+                    </div>
                 </div>
-                <div id="guessBox2" class="guessBox">
-                    <div class="skipped" hidden="true"></div>
-                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
-                    <div class="wrong" hidden="true">
-                        <div class="wrongX1"></div>
-                        <div class="wrongX2"></div>
+            </div>
+            <div id="progressDiv">
+                <div id="progressBar">
+                    <div id="play1" style="background-color: rgb(65, 65, 65);">
                     </div>
-                    <div class="partiallyCorrect" hidden="true">
-                        <div class="partiallyCorrectX1"></div>
-                        <div class="partiallyCorrectX2"></div>
+                    <div id="play2">
                     </div>
-                    <div class="correct" hidden="true">
-                        <div class="correctX1"></div>
-                        <div class="correctX2"></div>
+                    <div id="play3">
                     </div>
-                    <p class="guessedSongText foreground"></p>
+                    <div id="play4">
+                    </div>
+                    <div id="play5">
+                    </div>
+                    <div id="play6">
+                    </div>
                 </div>
-                <div id="guessBox3" class="guessBox">
-                    <div class="skipped" hidden="true"></div>
-                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
-                    <div class="wrong" hidden="true">
-                        <div class="wrongX1"></div>
-                        <div class="wrongX2"></div>
+            </div>
+            <div id="searchDiv">
+                <div id="playButtonRow">
+                    <div id="currentTimePlayingDiv" class="row">
+                        <p id="currentTimePlayingText" class="foreground">0:00</p>
                     </div>
-                    <div class="partiallyCorrect" hidden="true">
-                        <div class="partiallyCorrectX1"></div>
-                        <div class="partiallyCorrectX2"></div>
+                    <div id="playButtonDiv" class="row">
+                        <button id="playButton" onclick="playSong()" class="spacedText">
+                            <svg role="img" height="16" width="16" viewBox="0 0 16 16">
+                                <path
+                                    d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288V1.713z">
+                                </path>
+                            </svg>
+                        </button>
+                        <button id="pauseButton" onclick="pauseSong()" class="spacedText" hidden="true">
+                            <svg role="img" height="16" width="16" viewBox="0 0 16 16">
+                                <path
+                                    d="M2.7 1a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7H2.7zm8 0a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7h-2.6z">
+                                </path>
+                            </svg>
+                        </button>
                     </div>
-                    <div class="correct" hidden="true">
-                        <div class="correctX1"></div>
-                        <div class="correctX2"></div>
+                    <div id="totalTimeDiv" class="row">
+                        <p class="foreground">0:16</p>
                     </div>
-                    <p class="guessedSongText foreground"></p>
                 </div>
-                <div id="guessBox4" class="guessBox">
-                    <div class="skipped" hidden="true"></div>
-                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
-                    <div class="wrong" hidden="true">
-                        <div class="wrongX1"></div>
-                        <div class="wrongX2"></div>
+                <div id="searchBarRow">
+                    <input id="searchInput" type="text" placeholder="Search for an artist / song title"
+                        onkeyup="filterSearch(this)">
+                    <div id="songsDropdown" class="dropdown-content">
+                        <ul id="myUL">
+                        </ul>
+                        <div id="chosenSongId" hidden="true"></div>
                     </div>
-                    <div class="partiallyCorrect" hidden="true">
-                        <div class="partiallyCorrectX1"></div>
-                        <div class="partiallyCorrectX2"></div>
-                    </div>
-                    <div class="correct" hidden="true">
-                        <div class="correctX1"></div>
-                        <div class="correctX2"></div>
-                    </div>
-                    <p class="guessedSongText foreground"></p>
                 </div>
-                <div id="guessBox5" class="guessBox">
-                    <div class="skipped" hidden="true"></div>
-                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
-                    <div class="wrong" hidden="true">
-                        <div class="wrongX1"></div>
-                        <div class="wrongX2"></div>
+                <div id="submissionRow">
+                    <div id="skipDiv" class="row">
+                        <button id="skipButton" class="spacedText">
+                            SKIP (+1s)
+                        </button>
                     </div>
-                    <div class="partiallyCorrect" hidden="true">
-                        <div class="partiallyCorrectX1"></div>
-                        <div class="partiallyCorrectX2"></div>
+                    <div class="row"></div>
+                    <div id="submitButtonDiv" class="row">
+                        <button id="submitButton" class="spacedText">
+                            SUBMIT
+                        </button>
                     </div>
-                    <div class="correct" hidden="true">
-                        <div class="correctX1"></div>
-                        <div class="correctX2"></div>
-                    </div>
-                    <p class="guessedSongText foreground"></p>
-                </div>
-                <div id="guessBox6" class="guessBox">
-                    <div class="skipped" hidden="true"></div>
-                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
-                    <div class="wrong" hidden="true">
-                        <div class="wrongX1"></div>
-                        <div class="wrongX2"></div>
-                    </div>
-                    <div class="partiallyCorrect" hidden="true">
-                        <div class="partiallyCorrectX1"></div>
-                        <div class="partiallyCorrectX2"></div>
-                    </div>
-                    <div class="correct" hidden="true">
-                        <div class="correctX1"></div>
-                        <div class="correctX2"></div>
-                    </div>
-                    <p class="guessedSongText foreground"></p>
                 </div>
             </div>
         </div>
-        <div id="progressDiv">
-            <div id="progressBar">
-                <div id="play1" style="background-color: rgb(65, 65, 65);">
-                </div>
-                <div id="play2">
-                </div>
-                <div id="play3">
-                </div>
-                <div id="play4">
-                </div>
-                <div id="play5">
-                </div>
-                <div id="play6">
-                </div>
+        <div id="results" hidden="true">
+            <div id="resultImageDiv">
+                <img id="resultImage"></img>
             </div>
-        </div>
-        <div id="searchDiv">
-            <div id="playButtonRow">
-                <div id="currentTimePlayingDiv" class="row">
-                    <p id="currentTimePlayingText" class="foreground">0:00</p>
-                </div>
-                <div id="playButtonDiv" class="row">
-                    <button id="playButton" onclick="playSong()" class="spacedText">
-                        <svg role="img" height="16" width="16" viewBox="0 0 16 16">
-                            <path
-                                d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288V1.713z">
-                            </path>
-                        </svg>
-                    </button>
-                    <button id="pauseButton" onclick="pauseSong()" class="spacedText" hidden="true">
-                        <svg role="img" height="16" width="16" viewBox="0 0 16 16">
-                            <path
-                                d="M2.7 1a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7H2.7zm8 0a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7h-2.6z">
-                            </path>
-                        </svg>
-                    </button>
-                </div>
-                <div id="totalTimeDiv" class="row">
-                    <p class="foreground">0:16</p>
-                </div>
+            <div id="resultSongDiv">
+                <h2 id="resultSong" class="foreground"></h2>
             </div>
-            <div id="searchBarRow">
-                <input id="searchInput" type="text" placeholder="Search for an artist / song title"
-                    onkeyup="filterSearch(this)">
-                <div id="songsDropdown" class="dropdown-content">
-                    <ul id="myUL">
-                    </ul>
-                    <div id="chosenSongId" hidden="true"></div>
-                </div>
-            </div>
-            <div id="submissionRow">
-                <div id="skipDiv" class="row">
-                    <button id="skipButton" class="spacedText">
-                        SKIP (+1s)
-                    </button>
-                </div>
-                <div class="row"></div>
-                <div id="submitButtonDiv" class="row">
-                    <button id="submitButton" class="spacedText">
-                        SUBMIT
-                    </button>
+            <button id="spotifyButton">
+                <a id="spotifyLink" target="_blank">Listen on Spotify</a>
+            </button>
+            <div id="resultMessageDiv">
+                <h3 id="resultMessage" class="foreground">
+
+                </h3>
+                <div id="resultBar">
+                    <div id="resultGuess1">
+                    </div>
+                    <div id="resultGuess2">
+                    </div>
+                    <div id="resultGuess3">
+                    </div>
+                    <div id="resultGuess4">
+                    </div>
+                    <div id="resultGuess5">
+                    </div>
+                    <div id="resultGuess6">
+                    </div>
                 </div>
             </div>
         </div>
