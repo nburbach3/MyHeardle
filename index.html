@@ -63,11 +63,6 @@
 
             $("#submitButton").click(function () {
                 let currentAttempts = localStorage.getItem("attemptNumber");
-                if (currentAttempts == "6") {
-                    //TODO: show results page instead
-                    alert("You have reached the maximum attempts.");
-                    return;
-                }
 
                 let guessedSongId = $("#chosenSongId").val();
                 let guess = $("#searchInput").val();
