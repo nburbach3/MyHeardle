@@ -58,6 +58,8 @@
                 handleRedirect();
             }
 
+            setGuessBoxes();
+
             access_token = localStorage.getItem("access_token");
             getSongs();
             getDevices();
@@ -70,6 +72,13 @@
 
             $("#submitButton").click(function () {
                 let currentAttempts = localStorage.getItem("attemptNumber");
+                if (currentAttempts == "5") {
+                    alert("You have reached the maximum attempts.");
+                    return;
+                }
+                
+                //TODO: set localstorage for guessBoxes to wrong/partial/correct after checking guess against song
+
                 if (currentAttempts) {
                     currentAttempts = parseInt(currentAttempts) + 1;
                 } else {
@@ -78,7 +87,69 @@
                 currentAttemptsNumber = currentAttempts;
                 localStorage.setItem("attemptNumber", currentAttempts);
             });
+
+            $("#skipButton").click(function() {
+                let attempts = localStorage.getItem("attemptNumber");
+                if (attempts == "6") {
+                    alert("You have reached the maximum attempts.");
+                    return;
+                }
+                let updatedText;
+                switch (attempts) {
+                    case (null):
+                        updatedText = "SKIP (+2s)";
+                        break;
+                    case ("1"):
+                        updatedText = "SKIP (+4s)";
+                        break;
+                    case ("2"):
+                        updatedText = "SKIP (+4s)";
+                        break;
+                    case ("3"):
+                        updatedText = "SKIP (+4s)";
+                        break;
+                    case ("4"):
+                        updatedText = "SKIP (+4s)";
+                        break;
+                    default:
+                }
+                $("#skipButton").text(updatedText);
+                if (attempts) {
+                    attempts = parseInt(attempts) + 1;
+                } else {
+                    attempts = 1;
+                }
+                $("#guessBox" + attempts).children(".skipped").attr('hidden', false);
+                $("#guessBox" + attempts).children(".skippedText").attr('hidden', false);
+                localStorage.setItem("attemptNumber", attempts);
+                localStorage.setItem("guessBox" + attempts, "skip");
+            });
         });
+
+        function setGuessBoxes() {
+            for (let i = 1; i <= 6; i++) {
+                let guessBox = localStorage.getItem("guessBox" + i);
+                switch(guessBox) {
+                    case("skip"):
+                        $("#guessBox" + i).children(".skipped").attr('hidden', false);
+                        $("#guessBox" + i).children(".skippedText").attr('hidden', false);
+                        break;
+                    case("wrong"):
+                        $("#guessBox" + i).children(".wrong").attr('hidden', false);
+                        $("#guessBox" + i).children(".guessedSongText").attr('hidden', false);
+                        break;
+                    case("partial"):
+                        $("#guessBox" + i).children(".partiallyCorrect").attr('hidden', false);
+                        $("#guessBox" + i).children(".guessedSongText").attr('hidden', false);
+                        break;
+                    case("correct"):
+                        $("#guessBox" + i).children(".correct").attr('hidden', false);
+                        $("#guessBox" + i).children(".guessedSongText").attr('hidden', false);
+                        break;
+                    default:
+                }
+            }
+        }
 
         function requestAuthorization() {
             localStorage.setItem("client_id", SPOTIFY_CLIENT_ID);
@@ -379,19 +450,89 @@
                     <p class="guessedSongText"></p>
                 </div>
                 <div id="guessBox2" class="guessBox">
-
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText"></p>
                 </div>
                 <div id="guessBox3" class="guessBox">
-
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText"></p>
                 </div>
                 <div id="guessBox4" class="guessBox">
-
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText"></p>
                 </div>
                 <div id="guessBox5" class="guessBox">
-
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText"></p>
                 </div>
                 <div id="guessBox6" class="guessBox">
-
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText"></p>
                 </div>
             </div>
         </div>
@@ -449,7 +590,7 @@
             <div id="submissionRow">
                 <div id="skipDiv" class="row">
                     <button id="skipButton" class="spacedText">
-                        SKIP (+2s)
+                        SKIP (+1s)
                     </button>
                 </div>
                 <div class="row"></div>
