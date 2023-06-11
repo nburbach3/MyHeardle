@@ -11,7 +11,7 @@
     <script>
         var SPOTIFY_CLIENT_ID = 'b88b3a6cf46c40daa767463a7f94c15e';
         var SPOTIFY_CLIENT_SECRET = '07d2880f3a484cd4b0280f31edf2883c';
-        var redirect_uri = "http://127.0.0.1:5500/index.html";
+        var redirect_uri = "https://nburbach3.github.io/MyHeardle/";
         var access_token;
         var refresh_token;
         var randomSong;
@@ -73,6 +73,10 @@
 
                 checkGuess();
 
+                if (paused && paused != "true") {
+                    pauseSong();
+                }
+
                 if (currentAttempts) {
                     currentAttempts = parseInt(currentAttempts) + 1;
                 } else {
@@ -99,6 +103,10 @@
                     attempts = 1;
                 }
 
+                if (paused && paused != "true") {
+                    pauseSong();
+                }
+
                 $("#guessBox" + attempts).children(".skipped").attr('hidden', false);
                 $("#guessBox" + attempts).children(".skippedText").attr('hidden', false);
                 let index = attempts + 1;
@@ -110,6 +118,8 @@
                 if (currentAttemptsNumber == 6) {
                     finishGame();
                 }
+
+                $("#searchInput").val('');
             });
 
             window.onclick = function (event) {
@@ -225,10 +235,18 @@
         function handleGetSongsResponse() {
             if (this.status == 200) {
                 let data = JSON.parse(this.responseText);
-                songArray = data.tracks.items;
-                setSongDropdown();
-                randomSong = pickRandomSong(songArray);
-                setInitialResults(randomSong);
+                if (songArray) {
+                    songArray = songArray.concat(data.tracks.items);
+                } else {
+                    songArray = data.tracks.items;
+                }
+                if (songArray.length == 500) {
+                    songArray = removeDuplicateSongs(songArray);
+                    shuffle(songArray);
+                    setSongDropdown();
+                    randomSong = pickRandomSong(songArray);
+                    setInitialResults(randomSong);
+                }
             } else if (this.status == 401) {
                 refreshAccessToken();
             } else {
@@ -237,8 +255,35 @@
         }
 
         function getSongs() {
-            let url = GET_SONGS + "?query=year:2000-2020 genre:pop&type=track&include_external=audio&market=US&offset=0&limit=50";
-            callAPI("GET", url, null, handleGetSongsResponse);
+            for (let i = 0; i < 10; i++) {
+                let url = GET_SONGS + "?query=year:2000-2020 genre:pop&type=track&include_external=audio&market=US&offset=" + i * 50 + "&limit=50";
+                callAPI("GET", url, null, handleGetSongsResponse);
+            }
+        }
+
+        function removeDuplicateSongs(songArray) {
+            let dict = {};
+            songArray.forEach(function (song) {
+                if (dict[song.name]) {
+                    //If we have already seen the song name once, remove the song
+                    songArray = songArray.filter(function (duplicateSong) {
+                        return duplicateSong.id != song.id
+                    });
+                } else {
+                    //If it is the first time seeing the song, set an indicator value
+                    dict[song.name] = 1;
+                }
+            });
+            return songArray;
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                let temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
         }
 
         function setInitialResults(randomSong) {
@@ -518,12 +563,19 @@
             let storageAttempts = localStorage.getItem("attemptNumber");
             let localCurrentAttempts = storageAttempts ? parseInt(storageAttempts) + 1 : 1;
 
+            let guessedSongObject = songArray.filter(song => {
+                return song.id == guessedSongId;
+            });
+
+            let guessedArtists = guessedSongObject[0].artists;
+            let guessedArtistNames = [];
+
+            guessedArtists.forEach(function (artist) {
+                guessedArtistNames.push(artist.name);
+            });
+
             $("#guessBox" + localCurrentAttempts).children(".guessedSongText").text(guessedSongText);
 
-            let guessedSongArtists = guessedSongText.split("(")[1].split(")")[0].split(",");
-            for (let i = 0; i < guessedSongArtists.length; i++) {
-                guessedSongArtists[i] = guessedSongArtists[i].trim();
-            }
             correct = false;
             partiallyCorrect = false;
 
@@ -533,7 +585,7 @@
                 localStorage.setItem("guessBox" + localCurrentAttempts, "correct");
             } else {
                 randomSong.artists.every(artist => {
-                    if (guessedSongArtists.includes(artist.name)) {
+                    if (guessedArtistNames.includes(artist.name)) {
                         partiallyCorrect = "true";
                         $("#guessBox" + localCurrentAttempts).children(".partiallyCorrect").attr('hidden', false);
                         localStorage.setItem("guessBox" + localCurrentAttempts, "partial");
@@ -587,6 +639,10 @@
         }
 
         function finishGame() {
+            if (paused && paused != "true") {
+                pauseSong();
+            }
+
             for (let i = 0; i <= 6; i++) {
                 let guess = localStorage.getItem("guessBox" + i);
                 switch(guess) {
