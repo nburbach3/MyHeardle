@@ -530,14 +530,14 @@
                 $("#guessBox" + localCurrentAttempts).children(".correct").attr('hidden', false);
                 localStorage.setItem("guessBox" + localCurrentAttempts, "correct");
             } else {
-                songArray.forEach(function (song) {
-                    song.artists.forEach(function (artist) {
-                        if (guessedSongArtists.includes(artist.name)) {
-                            partiallyCorrect = "true";
-                            $("#guessBox" + localCurrentAttempts).children(".partiallyCorrect").attr('hidden', false);
-                            localStorage.setItem("guessBox" + localCurrentAttempts, "partial");
-                        }
-                    });
+                randomSong.artists.every(artist => {
+                    if (guessedSongArtists.includes(artist.name)) {
+                        partiallyCorrect = "true";
+                        $("#guessBox" + localCurrentAttempts).children(".partiallyCorrect").attr('hidden', false);
+                        localStorage.setItem("guessBox" + localCurrentAttempts, "partial");
+                        return false;
+                    }
+                    return true;
                 });
             }
 
