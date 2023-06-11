@@ -88,7 +88,7 @@
                     return;
                 }
 
-                checkGuess();
+                let correct = checkGuess();
 
                 if (paused && paused != "true") {
                     pauseSong();
@@ -102,7 +102,7 @@
                 currentAttemptsNumber = currentAttempts;
                 localStorage.setItem("attemptNumber", currentAttempts);
 
-                if (currentAttemptsNumber == 6) {
+                if (currentAttemptsNumber == 6 || correct) {
                     finishGame();
                 }
 
@@ -120,10 +120,6 @@
                     attempts = 1;
                 }
 
-                if (paused && paused != "true") {
-                    pauseSong();
-                }
-
                 $("#guessBox" + attempts).children(".skipped").attr('hidden', false);
                 $("#guessBox" + attempts).children(".skippedText").attr('hidden', false);
                 let index = attempts + 1;
@@ -133,6 +129,9 @@
                 localStorage.setItem("guessBox" + attempts, "skip");
 
                 if (currentAttemptsNumber == 6) {
+                    if (paused && paused != "true") {
+                        pauseSong();
+                    }
                     finishGame();
                 }
 
@@ -151,6 +150,11 @@
                     }
                 }
             }
+
+            $("#playAgainButton").click(function() {
+                localStorage.clear();
+                location.reload();
+            });
         });
 
         function setFields() {
@@ -628,8 +632,9 @@
             setUpdatedSkipText(storageAttempts);
 
             if (correct == "true") {
-                finishGame();
+                return true;
             }
+            return false;
         }
 
         function setUpdatedSkipText(attempts) {
@@ -680,12 +685,8 @@
                     default:
                 }
             }
+
             let attempts = localStorage.getItem("attemptNumber");
-            if (!attempts) {
-                attempts = 1;
-            } else {
-                attempts++;
-            }
 
             if (correct == "true") {
                 $("#resultMessage").text("You won in " + attempts + " attempt(s)!");
@@ -910,6 +911,11 @@
                     <div id="resultGuess6">
                     </div>
                 </div>
+            </div>
+            <div id="playAgainDiv">
+                <button id="playAgainButton">
+                    Play Again
+                </button>
             </div>
         </div>
     </div>

@@ -40,7 +40,7 @@ body {
 }
 
 #resultMessageDiv {
-    height: 300px;
+    height: 100px;
 }
 
 #resultMessage {
@@ -311,6 +311,18 @@ body {
 }
 
 #submitButton {
+    height: 50px;
+    width: 125px;
+    background-color: rgba(0, 248, 33, 0.575);
+    color: #fff;
+    border-radius: 10px;
+}
+
+#playAgainDiv {
+    height: 180px;
+}
+
+#playAgainButton {
     height: 50px;
     width: 125px;
     background-color: rgba(0, 248, 33, 0.575);
