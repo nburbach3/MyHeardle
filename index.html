@@ -43,8 +43,14 @@
                 handleRedirect();
             }
 
-            let loadedPageAlready = localStorage.getItem("loadedPageAlready");
-            if (!loadedPageAlready) {
+            let loadedAuthorization = localStorage.getItem("loadedAuthorization");
+            let finishedLoading = localStorage.getItem("finishedLoading");
+            if (loadedAuthorization && !finishedLoading) {
+                localStorage.setItem("finishedLoading", "true");
+                location.reload();
+            }
+
+            if (!finishedLoading) {
                 requestAuthorization();
             }
 
@@ -54,7 +60,18 @@
             $("#skipButton").text(storageSkipText != "undefined" && storageSkipText != null ? storageSkipText : "SKIP (+1s)");
 
             access_token = localStorage.getItem("access_token");
-            getSongs();
+
+            let storageRandomSong = localStorage.getItem("randomSong");
+            let storageSongArray = localStorage.getItem("songArray");
+            if (!storageRandomSong && !storageSongArray) {
+                getSongs();
+            } else {
+                randomSong = JSON.parse(storageRandomSong);
+                songArray = JSON.parse(storageSongArray);
+                setSongDropdown();
+                setInitialResults(randomSong);
+            }
+
             getDevices();
 
             $("#pauseButton").click(function () {
@@ -171,7 +188,7 @@
         function requestAuthorization() {
             localStorage.setItem("client_id", SPOTIFY_CLIENT_ID);
             localStorage.setItem("client_secret", SPOTIFY_CLIENT_SECRET);
-            localStorage.setItem("loadedPageAlready", "true");
+            localStorage.setItem("loadedAuthorization", "true");
 
             let authorizeURL = "https://accounts.spotify.com/authorize";
             let URL = authorizeURL + "?client_id=" + SPOTIFY_CLIENT_ID + "&response_type=code" + "&redirect_uri=" + encodeURI(redirect_uri) + "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private"
@@ -246,6 +263,8 @@
                     setSongDropdown();
                     randomSong = pickRandomSong(songArray);
                     setInitialResults(randomSong);
+                    localStorage.setItem("randomSong", JSON.stringify(randomSong));
+                    localStorage.setItem("songArray", JSON.stringify(songArray));
                 }
             } else if (this.status == 401) {
                 refreshAccessToken();
