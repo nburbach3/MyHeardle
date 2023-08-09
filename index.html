@@ -11,7 +11,7 @@
     <script>
         var SPOTIFY_CLIENT_ID = 'b88b3a6cf46c40daa767463a7f94c15e';
         var SPOTIFY_CLIENT_SECRET = '07d2880f3a484cd4b0280f31edf2883c';
-        var redirect_uri = "https://nburbach3.github.io/MyHeardle/";
+        var redirect_uri = "http://127.0.0.1:5500/index.html";
         var access_token;
         var refresh_token;
         var randomSong;
@@ -221,6 +221,7 @@
         }
 
         function callAuthorization(body) {
+            console.log("calledAuth");
             let xhr = new XMLHttpRequest();
             xhr.open("POST", TOKEN, true);
             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -239,6 +240,9 @@
                     localStorage.setItem("refresh_token", data.refresh_token);
                 }
                 window.location.reload;
+            } else if (this.status == 401 || this.status == 400) {
+                debugger;
+                console.log(this.responseText);
             } else {
                 alert(this.responseText);
             }
