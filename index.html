@@ -239,8 +239,8 @@
                     localStorage.setItem("refresh_token", data.refresh_token);
                 }
                 window.location.reload;
-            } else {
-                alert(this.responseText);
+            } else if (this.status == 401 || this.status == 400) {
+                console.log(this.responseText);
             }
         }
 
@@ -272,8 +272,6 @@
                 }
             } else if (this.status == 401) {
                 refreshAccessToken();
-            } else {
-                alert(this.responseText);
             }
         }
 
@@ -334,8 +332,6 @@
         function handlePlaySongResponse() {
             if (this.status == 401) {
                 refreshAccessToken();
-            } else if (this.status != 204) {
-                alert(this.responseText);
             }
         }
 
@@ -491,8 +487,6 @@
         function handlePauseSongResponse() {
             if (this.status == 401) {
                 refreshAccessToken();
-            } else if (this.status != 204) {
-                alert(this.responseText);
             }
         }
 
@@ -516,8 +510,6 @@
                 }
             } else if (this.status == 401) {
                 refreshAccessToken();
-            } else {
-                alert(this.responseText);
             }
         }
 
