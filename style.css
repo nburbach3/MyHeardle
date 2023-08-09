@@ -6,10 +6,11 @@ body {
 
 #basePage {
     background-color: #121212;
+    height: 100vh;
 }
 
 #results {
-    padding: 28px 28px 9vh;
+    padding: 28px 28px;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -192,7 +193,6 @@ body {
 
 #searchDiv {
     padding-top: 2vh;
-    padding-bottom: 15vh;
     display: flex;
     flex-direction: column;
     align-items: center;
