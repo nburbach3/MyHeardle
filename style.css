@@ -150,13 +150,49 @@ body {
 
 #progressBar {
     display: flex;
-    flex-grow: 1;
-    height: 100%;
+    height: 20px;
     width: 100%;
     max-width: 800px;
     border-left: 1px solid rgb(136, 136, 136);
     border-right: 1px solid rgb(136, 136, 136);
-} 
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+#progressBar > div {
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+}
+
+#progressBar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background-color: green;
+    z-index: 3;
+}
+
+#progressBar.animate::before {
+    animation: fillSegment 16s linear forwards;
+}
+
+#progressBar.paused::before {
+    animation-play-state: paused;
+}
+
+@keyframes fillSegment {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
 
 #play1 {
     flex-grow: 1;
@@ -258,6 +294,7 @@ body {
 }
 
 #searchBarRow {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -270,13 +307,14 @@ body {
 }
 
 #searchInput {
+    position: relative;
     width: 800px;
     height: 7vh;
     border-radius: 10px;
     font-size: 20px;
     font-weight: 600;
     padding-left: 25px;
-    z-index: 999;
+    z-index: 1;
 }
 
 #submissionRow {
@@ -302,6 +340,19 @@ body {
     width: 125px;
     background-color: rgb(100, 100, 100);
     color: #fff;
+    border-radius: 10px;
+}
+
+#resetDiv {
+    display: flex;
+    justify-content: center;
+}
+
+#resetButton {
+    height: 50px;
+    width: 125px;
+    background-color: rgb(255, 255, 255);
+    color: black;
     border-radius: 10px;
 }
 
@@ -454,10 +505,10 @@ body {
     background-color: #f9f9f9;
     overflow-y: scroll;
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-    z-index: 1;
+    z-index: 2;
     max-height: 300px;
-    min-width: 800px;
-    bottom: 280px;
+    width: 800px;
+    bottom: 67px;
 }
 
 .show {

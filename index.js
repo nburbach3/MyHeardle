@@ -1,3 +1,37 @@
+function setAuthorization(callback) {
+    let loadedAuthorization = localStorage.getItem("loadedAuthorization");
+
+    if (!loadedAuthorization) {
+        requestAuthorization();
+    }
+
+    if (window.location.search.length > 0) {
+        handleRedirect(callback);
+    } else {
+        callback();
+    }
+}
+
+function setupGame() {
+    // Set the global access token so we don't have to keep retrieving it
+    access_token = localStorage.getItem("access_token");
+
+    let storageRandomSong = localStorage.getItem("randomSong");
+    let storageSongArray = localStorage.getItem("songArray");
+    if (!storageRandomSong && !storageSongArray) {
+        getSongs();
+    } else {
+        randomSong = JSON.parse(storageRandomSong);
+        songArray = JSON.parse(storageSongArray);
+        setSongDropdown();
+        setInitialResults(randomSong);
+        enableButtons();
+    }
+
+    getDevices();
+}
+
+
 function setFields() {
     for (let i = 1; i <= 6; i++) {
         let guessBox = localStorage.getItem("guessBox" + i);
@@ -28,6 +62,9 @@ function setFields() {
             default:
         }
     }
+
+    let storageSkipText = localStorage.getItem("skipText");
+    $("#skipButton").text(storageSkipText != "undefined" && storageSkipText != null ? storageSkipText : "SKIP (+1s)");
 }
 
 function requestAuthorization() {
@@ -40,9 +77,9 @@ function requestAuthorization() {
     window.location.href = URL;
 }
 
-function handleRedirect() {
+function handleRedirect(callback) {
     let code = getCode();
-    fetchAccessToken(code);
+    fetchAccessToken(code, callback);
     window.history.pushState("", "", redirect_uri);
 }
 
@@ -56,32 +93,27 @@ function getCode() {
     return code;
 }
 
-function fetchAccessToken(code) {
+function fetchAccessToken(code, callback) {
     let body = "grant_type=authorization_code" + "&code=" + code + "&redirect_uri=" + encodeURI(redirect_uri) + "&client_id=" + SPOTIFY_CLIENT_ID + "&client_secret=" + SPOTIFY_CLIENT_SECRET;
-    callAuthorization(body);
+    callAuthorization(body, callback);
 }
 
-function callAuthorization(body) {
+function callAuthorization(body, callback) {
     let xhr = new XMLHttpRequest();
     xhr.open("POST", TOKEN, true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.setRequestHeader("Authorization", "Basic " + btoa(SPOTIFY_CLIENT_ID + ":" + SPOTIFY_CLIENT_SECRET));
     xhr.send(body);
-    xhr.onload = handleAuthorizationResponse;
-}
-
-function handleAuthorizationResponse() {
-    if (this.status == 200) {
-        let data = JSON.parse(this.responseText);
-        if (data.access_token) {
-            localStorage.setItem("access_token", data.access_token);
+    xhr.extraInfo = callback;
+    xhr.onload = (e) => {
+        if (e.target.status == 200) {
+            let data = JSON.parse(e.target.responseText);
+            if (data.access_token) {
+                localStorage.setItem("access_token", data.access_token);
+            }
+            e.target.extraInfo && callback();
+            window.location.reload;
         }
-        if (data.refresh_token) {
-            localStorage.setItem("refresh_token", data.refresh_token);
-        }
-        window.location.reload;
-    } else if (this.status == 401 || this.status == 400) {
-        console.log(this.responseText);
     }
 }
 
@@ -111,9 +143,10 @@ function handleGetSongsResponse() {
             setInitialResults(randomSong);
             localStorage.setItem("randomSong", JSON.stringify(randomSong));
             localStorage.setItem("songArray", JSON.stringify(songArray));
-        }        
-    } else if (this.status == 401) {
-        refreshAccessToken();
+            enableButtons();
+        }
+    } else if (this.status = 401) {
+        requestAuthorization();
     }
 }
 
@@ -150,7 +183,7 @@ function shuffle(array) {
 }
 
 function setInitialResults(randomSong) {
-    
+
     $("#resultImage").attr('src', randomSong.track.album.images[0].url);
 
     let songName = randomSong.track.name + " (";
@@ -171,11 +204,8 @@ function pickRandomSong(songArray) {
     return songArray[randomIndex];
 }
 
-function handlePlaySongResponse() {
-    if (this.status == 401) {
-        refreshAccessToken();
-    }
-}
+// Keeping this here for potential future development
+function handlePlaySongResponse() { }
 
 function playSong() {
     let attempts = localStorage.getItem("attemptNumber");
@@ -183,6 +213,8 @@ function playSong() {
         alert("You already finished playing.");
         return;
     }
+
+    localStorage.setItem("currentlyPlaying", "true");
 
     paused = "false";
     $("#playButton").hide();
@@ -231,7 +263,6 @@ function playSong() {
 }
 
 function handleTime() {
-    //TODO: set the countDownTime based on the number of attempts
     let attempts = localStorage.getItem("attemptNumber");
     let countDownTime = new Date().getTime();
 
@@ -261,7 +292,10 @@ function handleTime() {
         }
     }
 
-    let timeInterval = setInterval(function () {
+    $("#progressBar").removeClass("paused");
+    $("#progressBar").addClass("animate");
+
+    timeInterval = setInterval(function () {
         let currentAttempts = localStorage.getItem("attemptNumber");
         if (parseInt(currentAttempts) > parseInt(attempts)) {
             switch (currentAttempts) {
@@ -285,54 +319,48 @@ function handleTime() {
             attempts = currentAttempts;
         }
         let now = new Date().getTime();
-        let timeLeft = timeLeftGlobal;
-        if (paused != "true") {
-            timeLeft = countDownTime - now;
-        }
+        let timeLeft = countDownTime - now;
 
         timeLeftGlobal = timeLeft;
 
-        if (paused == "true") {
-            countDownTime = now + timeLeft;
-            $("#pauseButton").hide();
-            $("#playButton").show();
-        } else if (timeLeft <= 0) {
+        if (timeLeft <= 0) {
             clearInterval(timeInterval);
             pauseSong();
             $("#pauseButton").hide();
             $("#playButton").show();
             timeLeftGlobal = 0;
+            $("#progressBar").removeClass("animate");
         }
     }, 1);
 
-    let timerTextInterval = setInterval(function () {
-        let counterLocal = counterGlobal;
-        if (paused != "true") {
-            counterLocal++;
-            let secondsPlayed = Math.floor(counterLocal);
-            if (secondsPlayed < 10) {
+    timerTextInterval = setInterval(function () {
+        counterLocal += 10;
+        if (Math.floor(counterLocal / 1000) > counterGlobal) {
+            counterGlobal++;
+            let secondsPlayed = counterGlobal;
+            if (counterGlobal < 10) {
                 secondsPlayed = "0" + secondsPlayed;
             }
             $("#currentTimePlayingText").text("0:" + secondsPlayed);
         }
 
-        counterGlobal = counterLocal;
-
         if (timeLeftGlobal <= 0) {
             clearInterval(timerTextInterval);
             counterGlobal = 0;
+            counterLocal = 0;
             $("#currentTimePlayingText").text("0:00");
         }
-    }, 1000);
+    }, 10);
 }
 
-function handlePauseSongResponse() {
-    if (this.status == 401) {
-        refreshAccessToken();
-    }
-}
+// Keeping this here for potential future development
+function handlePauseSongResponse() { }
 
 function pauseSong() {
+    localStorage.setItem("currentlyPlaying", "false");
+
+    $("#progressBar").addClass("paused");
+
     paused = "true";
     $("#pauseButton").hide();
     $("#playButton").show();
@@ -351,18 +379,12 @@ function handleGetDevicesResponse() {
             deviceId = devicesArray[0].id;
         }
     } else if (this.status == 401) {
-        refreshAccessToken();
+        requestAuthorization();
     }
 }
 
 function getDevices() {
     callAPI("GET", GET_DEVICES, null, handleGetDevicesResponse);
-}
-
-function refreshAccessToken() {
-    refresh_token = localStorage.getItem("refresh_token");
-    let body = "grant_type=refresh_token" + "&refresh_token=" + refresh_token + "&client_id=" + SPOTIFY_CLIENT_ID;
-    callAuthorization(body);
 }
 
 function filterSearch(searchInput) {
@@ -406,7 +428,6 @@ function setSongDropdown() {
         listElem.appendChild(elem);
         $("#myUL").append(listElem);
     }
-    let dropdown = $("#songsDropdown");
 }
 
 function selectSong(anchorTag) {
@@ -503,17 +524,17 @@ function finishGame() {
 
     for (let i = 0; i <= 6; i++) {
         let guess = localStorage.getItem("guessBox" + i);
-        switch(guess) {
-            case("wrong"):
+        switch (guess) {
+            case ("wrong"):
                 $("#resultGuess" + i).attr('style', 'background-color: red;');
                 break;
-            case("skip"):
+            case ("skip"):
                 $("#resultGuess" + i).attr('style', 'background-color: rgb(65, 65, 65);');
                 break;
-            case("partial"):
+            case ("partial"):
                 $("#resultGuess" + i).attr('style', 'background-color: yellow;');
                 break;
-            case("correct"):
+            case ("correct"):
                 $("#resultGuess" + i).attr('style', 'background-color: green;');
                 break;
             default:
@@ -530,4 +551,16 @@ function finishGame() {
 
     $("#game").attr('hidden', true);
     $("#results").attr('hidden', false);
+}
+
+function enableButtons() {
+    $("#playButton").prop("disabled", false);
+    $("#skipButton").prop("disabled", false);
+    $("#resetButton").prop("disabled", false);
+    $("#submitButton").prop("disabled", false);
+
+    let currentlyPlaying = localStorage.getItem("currentlyPlaying");
+    if (currentlyPlaying && currentlyPlaying == "true") {
+        pauseSong();
+    }
 }
