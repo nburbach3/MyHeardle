@@ -1,12 +1,13 @@
 body {
     margin: 0px;
     padding: 0px;
-    height: 100%;
 }
 
 #basePage {
     background-color: #121212;
-    height: 100vh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 #results {
@@ -93,6 +94,7 @@ body {
 #nebraskaLink {
     width: 60px;
     height: 35px;
+    flex-grow: 1;
 }
 
 #header {
@@ -110,14 +112,16 @@ body {
 }
 
 #headerTitle {
-    padding: 0px;
+    min-width: 200px;
     margin: 0px;
-    text-align: center;
-    flex-grow: 1;
     font-size: 32px;
     font-weight: 700;
     line-height: 36px;
     letter-spacing: -0.04em;
+}
+
+#spacer {
+    flex-grow: 1;
 }
 
 #content {
@@ -538,6 +542,10 @@ a:hover {
 
 button:hover {
     cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
 }
 
 * {
