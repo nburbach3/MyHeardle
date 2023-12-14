@@ -559,6 +559,7 @@ function enableButtons() {
     $("#resetButton").prop("disabled", false);
     $("#submitButton").prop("disabled", false);
 
+    // Pause song if was playing and refreshed page - needs to be here to wait until authentication finishes
     let currentlyPlaying = localStorage.getItem("currentlyPlaying");
     if (currentlyPlaying && currentlyPlaying == "true") {
         pauseSong();
