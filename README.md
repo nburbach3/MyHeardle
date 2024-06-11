@@ -24,4 +24,5 @@ My colleagues and I used to enjoy playing Heardle daily, but Spotify discontinue
 
 ## Example Gameplay
 
-https://github.com/nburbach3/MyHeardle/assets/42589037/4985cbbc-3a1b-413f-b546-d55bede42dc0
+https://github.com/nburbach3/MyHeardle/assets/42589037/0ae447f9-9277-4de6-ba72-f8316b2a012b
+
