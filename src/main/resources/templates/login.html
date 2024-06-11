@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>My Heardle</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+
+
+    <script>
+        const redirect_uri = "https://my-heardle-latest.onrender.com";
+        const AUTH_URL = "https://accounts.spotify.com/authorize?client_id=b88b3a6cf46c40daa767463a7f94c15e&response_type=code"
+        + "&redirect_uri=" + encodeURI(redirect_uri) + "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private"
+
+        const code = new URLSearchParams(window.location.search).get("code");
+
+        $(document).ready(function () {
+            $("#spotifyLoginButton").on("click", function() {
+                window.location.href = AUTH_URL;
+            });
+
+            if (code) {
+                $.ajax({
+                    url: "/play",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: code,
+                    success: function(response) {
+                        window.location.href = "/play";
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+
+<body>
+<div id="loginBasePage">
+    <div id="loginDiv">
+        <h1 id="myHeardleTitle">My Heardle</h1>
+        <button id="spotifyButton">
+            <a id="spotifyLoginButton">Login To Spotify</a>
+        </button>
+    </div>
+</div>
+</body>
+</html>

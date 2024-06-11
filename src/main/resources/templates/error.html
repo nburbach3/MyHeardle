@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>My Heardle</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#goToLoginButton").on("click", function() {
+                window.location.href = "/";
+            });
+        });
+    </script>
+</head>
+
+<body>
+<div id="errorBasePage">
+    <div id="errorDiv">
+        <h1 id="errorTitle">Oops... something went wrong. Please navigate back to the login page:</h1>
+        <button id="loginButton">
+            <a id="goToLoginButton">Go To Login Page</a>
+        </button>
+    </div>
+</div>
+</body>
+</html>

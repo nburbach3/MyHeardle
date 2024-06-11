@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>My Heardle</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/play.css}">
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script th:src="@{/js/web_playback.js}"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
+
+
+    <script th:inline="javascript">
+        //<![CDATA[
+        const token = [[${token}]];
+        var accessToken = token?.access_token;
+        const refreshToken = token?.refresh_token;
+
+        const GET_SONGS = "https://api.spotify.com/v1/playlists";
+        const PLAY_SONG = "https://api.spotify.com/v1/me/player/play";
+        const PAUSE_SONG = "https://api.spotify.com/v1/me/player/pause";
+
+        var randomSong;
+        var songList;
+        var currentAttempts = 1;
+        var guessedBoxes = {
+            1: "",
+            2: "",
+            3: "",
+            4: "",
+            5: "",
+            6: ""
+        }
+        var playlistId = "5XALIurWS8TuF6kk8bj438";
+        var timeLeftGlobal = 0;
+        var counterLocal = 0;
+        var counterGlobal = 0;
+        var timerTextInterval;
+        var timeInterval;
+
+        $(document).ready(async function () {
+            if (!token) {
+                window.location = "/";
+            }
+
+            let test = Swal.fire({
+                title: "Loading game, please wait",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false,
+                animation: false,
+                onOpen: function() {
+                    Swal.showLoading();
+                }
+            });
+            setupGame().then(function() {
+                Swal.close();
+            });
+
+
+
+            $("#submitButton").click(function() {
+                let guessedSongId = $("#chosenSongId").val();
+                let guess = $("#searchInput").val();
+                if (!guess || !guess.trim() || guessedSongId == '') {
+                    Swal.fire({
+                        type: "warning",
+                        text: "You must select a song from the dropdown list"
+                    });
+                    return;
+                }
+
+                player.getCurrentState().then(state => {
+                    if (!state.paused) {
+                        pauseSong();
+                        clearInterval(timeInterval);
+                        clearInterval(timerTextInterval);
+                    }
+                });
+
+                let correct = checkGuess();
+
+                currentAttempts++;
+
+                if (currentAttempts == 7 || correct) {
+                    finishGame(correct);
+                }
+
+                $("#searchInput").val('');
+            });
+
+            $("#pauseButton").click(function () {
+                clearInterval(timeInterval);
+                clearInterval(timerTextInterval);
+            });
+
+            $("#skipButton").click(function () {
+                setUpdatedSkipText(currentAttempts);
+
+                $("#guessBox" + currentAttempts).children(".skipped").attr('hidden', false);
+                $("#guessBox" + currentAttempts).children(".skippedText").attr('hidden', false);
+                guessedBoxes[currentAttempts] = "skip";
+
+                let index = currentAttempts + 1;
+                $("#play" + index).css("background-color", "rgb(65, 65, 65)");
+
+                currentAttempts++;
+
+                if (currentAttempts == 7) {
+                    player.getCurrentState().then(state => {
+                        if (!state.paused) {
+                            pauseSong();
+                            clearInterval(timeInterval);
+                            clearInterval(timerTextInterval);
+                        }
+                    });
+                    finishGame(false);
+                }
+
+                $("#searchInput").val('');
+            });
+
+            $("#playAgainButton, #resetButton").click(function () {
+                //TODO: separate results into new page
+                location.reload();
+            });
+
+            $("#playButton").click(async function() {
+                $("#playButton").hide();
+                $("#pauseButton").show();
+
+                let position_ms = 1;
+                if (timeLeftGlobal) {
+                    switch (currentAttempts) {
+                        case (1):
+                            position_ms = 1000 - timeLeftGlobal;
+                            break;
+                        case (2):
+                            position_ms = 2000 - timeLeftGlobal;
+                            break;
+                        case (3):
+                            position_ms = 4000 - timeLeftGlobal;
+                            break;
+                        case (4):
+                            position_ms = 8000 - timeLeftGlobal;
+                            break;
+                        case (5):
+                            position_ms = 12000 - timeLeftGlobal;
+                            break;
+                        case (6):
+                            position_ms = 16000 - timeLeftGlobal;
+                            break;
+                        default:
+                    }
+                }
+
+                let context_uri = "spotify:playlist:" + playlistId;
+                let offset = {
+                    "uri": "spotify:track:" + randomSong.track.id
+                }
+                let body = {
+                    "context_uri": context_uri,
+                    "offset": offset,
+                    "position_ms": position_ms
+                };
+                let url = PLAY_SONG + "?device_id=" + deviceId;
+
+                await fetch(url, {
+                    method: "PUT",
+                    headers: new Headers({
+                        Authorization: "Bearer " + accessToken,
+                    }),
+                    body: JSON.stringify(body)
+                }).then((response) => {
+                        if (response.status == 401) {
+                            console.log("need refresh token");
+                        }
+                    });
+
+                handleTime();
+            });
+
+            // Hide the dropdown when clicking outside of search bar
+            window.onclick = function (event) {
+                if (!event.target.matches('#searchInput')) {
+                    let dropdowns = $(".dropdown-content");
+                    for (let i = 0; i < dropdowns.length; i++) {
+                        let openDropdown = dropdowns[i];
+                        if (openDropdown.classList.contains('show')) {
+                            openDropdown.classList.remove('show');
+                        }
+                    }
+                }
+            }
+        });
+
+        function handleTime() {
+            let countDownTime = new Date().getTime();
+            let localAttempts = currentAttempts;
+
+            if (timeLeftGlobal) {
+                countDownTime += timeLeftGlobal;
+            } else {
+                switch (localAttempts) {
+                    case (1):
+                        countDownTime += 1000;
+                        break;
+                    case (2):
+                        countDownTime += 2000;
+                        break;
+                    case (3):
+                        countDownTime += 4000;
+                        break;
+                    case (4):
+                        countDownTime += 8000;
+                        break;
+                    case (5):
+                        countDownTime += 12000;
+                        break;
+                    case (6):
+                        countDownTime += 16000;
+                        break;
+                    default:
+                }
+            }
+
+            $("#progressBar").removeClass("paused");
+            $("#progressBar").addClass("animate");
+
+            timeInterval = setInterval(function () {
+                if (currentAttempts > localAttempts) {
+                    switch (currentAttempts) {
+                        case (2):
+                            countDownTime += 1000;
+                            break;
+                        case (3):
+                            countDownTime += 2000;
+                            break;
+                        case (4):
+                            countDownTime += 4000;
+                            break;
+                        case (5):
+                            countDownTime += 4000;
+                            break;
+                        case (6):
+                            countDownTime += 4000;
+                            break;
+                        default:
+                    }
+                    localAttempts = currentAttempts;
+                }
+                let now = new Date().getTime();
+                let timeLeft = countDownTime - now;
+
+                timeLeftGlobal = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timeInterval);
+                    pauseSong();
+                    $("#pauseButton").hide();
+                    $("#playButton").show();
+                    timeLeftGlobal = 0;
+                    $("#progressBar").removeClass("animate");
+                }
+            }, 1);
+
+            timerTextInterval = setInterval(function () {
+                counterLocal += 10;
+                if (Math.floor(counterLocal / 1000) > counterGlobal) {
+                    counterGlobal++;
+                    let secondsPlayed = counterGlobal;
+                    if (counterGlobal < 10) {
+                        secondsPlayed = "0" + secondsPlayed;
+                    }
+                    $("#currentTimePlayingText").text("0:" + secondsPlayed);
+                }
+
+                if (timeLeftGlobal <= 0) {
+                    clearInterval(timerTextInterval);
+                    counterGlobal = 0;
+                    counterLocal = 0;
+                    $("#currentTimePlayingText").text("0:00");
+                }
+            }, 10);
+        }
+
+        function pauseSong() {
+            $("#progressBar").addClass("paused");
+            $("#pauseButton").hide();
+            $("#playButton").show();
+            let url = PAUSE_SONG + "?device_id=" + deviceId;
+
+            fetch(url, {
+                method: "PUT",
+                headers: new Headers({
+                    Authorization: "Bearer " + accessToken,
+                }),
+            }).then((response) => {
+                if (response.status == 401) {
+                    console.log("need refresh token");
+                }
+            });
+        }
+
+        function finishGame(correct) {
+            player.getCurrentState().then(state => {
+                if (!state.paused) {
+                    pauseSong();
+                    clearInterval(timeInterval);
+                    clearInterval(timerTextInterval);
+                }
+            });
+
+            for (let i = 1; i <= 6; i++) {
+                let guess = guessedBoxes[i];
+                switch (guess) {
+                    case ("wrong"):
+                        $("#resultGuess" + i).attr('style', 'background-color: red;');
+                        break;
+                    case ("skip"):
+                        $("#resultGuess" + i).attr('style', 'background-color: rgb(65, 65, 65);');
+                        break;
+                    case ("partial"):
+                        $("#resultGuess" + i).attr('style', 'background-color: yellow;');
+                        break;
+                    case ("correct"):
+                        $("#resultGuess" + i).attr('style', 'background-color: green;');
+                        break;
+                    default:
+                }
+            }
+
+            if (correct == true) {
+                $("#resultMessage").text("You won in " + (currentAttempts - 1) + " attempt(s)!");
+            } else {
+                $("#resultMessage").text("You did not guess the correct song :(");
+            }
+
+            $("#game").attr('hidden', true);
+            $("#results").attr('hidden', false);
+        }
+
+        function setInitialResults(randomSong) {
+
+            $("#resultImage").attr('src', randomSong.track.album.images[0].url);
+
+            let songName = randomSong.track.name + " (";
+
+            for (let i = 0; i < randomSong.track.artists.length; i++) {
+                if (i == randomSong.track.artists.length - 1) {
+                    songName += randomSong.track.artists[i].name + ")";
+                } else {
+                    songName += randomSong.track.artists[i].name + ", ";
+                }
+            }
+            $("#resultSong").text(songName);
+            $("#spotifyLink").attr('href', randomSong.track.external_urls.spotify);
+        }
+
+
+        function checkGuess() {
+            let guessedSongId = $("#chosenSongId").val();
+            let guessedSongText = $("#searchInput").val();
+
+            let guessedSongObject = songList.find((song) => song.track.id == guessedSongId);
+
+            let guessedArtists = guessedSongObject.track.artists;
+            let guessedArtistNames = [];
+
+            guessedArtists.forEach(function (artist) {
+                guessedArtistNames.push(artist.name);
+            });
+
+            $("#guessBox" + currentAttempts).children(".guessedSongText").text(guessedSongText);
+
+            let correct = false;
+            let partiallyCorrect = false;
+
+            if (guessedSongId == randomSong.track.id) {
+                correct = "true";
+                $("#guessBox" + currentAttempts).children(".correct").attr('hidden', false);
+                guessedBoxes[currentAttempts] = "correct";
+            } else {
+                randomSong.track.artists.every(artist => {
+                    if (guessedArtistNames.includes(artist.name)) {
+                        partiallyCorrect = "true";
+                        $("#guessBox" + currentAttempts).children(".partiallyCorrect").attr('hidden', false);
+                        guessedBoxes[currentAttempts] = "partial";
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            if (!correct && !partiallyCorrect) {
+                $("#guessBox" + currentAttempts).children(".wrong").attr('hidden', false);
+                guessedBoxes[currentAttempts] = "wrong";
+            }
+
+            $("#guessBox" + currentAttempts).children(".guessedSongText").attr('hidden', false);
+
+            let index = currentAttempts + 1;
+            $("#play" + index).css("background-color", "rgb(65, 65, 65)");
+
+            setUpdatedSkipText(currentAttempts);
+
+            if (correct == "true") {
+                return true;
+            }
+            return false;
+        }
+
+        function setUpdatedSkipText(attempts) {
+            let updatedText;
+            switch (attempts) {
+                case (1):
+                    updatedText = "SKIP (+2s)";
+                    break;
+                case (2):
+                    updatedText = "SKIP (+4s)";
+                    break;
+                case (3):
+                    updatedText = "SKIP (+4s)";
+                    break;
+                case (4):
+                    updatedText = "SKIP (+4s)";
+                    break;
+                case (5):
+                    updatedText = "SKIP (+4s)";
+                    break;
+                default:
+            }
+
+            $("#skipButton").text(updatedText);
+        }
+
+        async function setupGame() {
+            let songArray = await initializeSongsFromPlaylist();
+            songList = songArray;
+
+            setSongDropdown(songArray);
+            randomSong = await pickRandomSong(songArray);
+            setInitialResults(randomSong);
+            enableButtons();
+
+<!--            songList = removeDuplicateSongs(songList);-->
+        }
+
+        async function initializeSongsFromPlaylist() {
+            let offset = 0;
+            let limit = 100;
+            let data = await getSongsFromPlaylist(playlistId, offset, limit);
+
+            let songArray = data.items;
+
+            let numberOfSongs = data.total - limit;
+
+            if (numberOfSongs > 0) {
+                let loops = Math.ceil(numberOfSongs / limit);
+                for (let i = 1; i <= loops; i++) {
+                    data = await getSongsFromPlaylist(playlistId, i * limit, limit);
+                    songArray = songArray.concat(data.items);
+                }
+            }
+            return songArray;
+        }
+
+        async function pickRandomSong(songArray) {
+            let randomIndex = Math.floor(Math.random() * songArray.length);
+            return songArray[randomIndex];
+        }
+
+        function enableButtons() {
+            $("#playButton").prop("disabled", false);
+            $("#skipButton").prop("disabled", false);
+            $("#resetButton").prop("disabled", false);
+            $("#submitButton").prop("disabled", false);
+        }
+
+        function setSongDropdown(songArray) {
+            for (let i = 0; i < songArray.length; i++) {
+                let song = songArray[i];
+                let elem = document.createElement("a");
+                elem.href = "#";
+                elem.addEventListener('click', function () {
+                    selectSong(this);
+                });
+                elem.textContent = song.track.name + " (";
+                for (let j = 0; j < song.track.artists.length; j++) {
+                    if (j == song.track.artists.length - 1) {
+                        elem.textContent += song.track.artists[j].name + ")";
+                    } else {
+                        elem.textContent += song.track.artists[j].name + ", ";
+                    }
+                }
+                elem.value = song.track.id;
+                let listElem = document.createElement("li");
+                listElem.appendChild(elem);
+                $("#myUL").append(listElem);
+            }
+        }
+
+        function filterSearch(searchInput) {
+            $("#chosenSongId").val('');
+            let search = searchInput.value.toLowerCase();
+            if (search.trim() != '') {
+                $("#songsDropdown").addClass('show');
+            } else {
+                $("#songsDropdown").removeClass('show');
+            }
+
+            let songsList = $("#myUL").children('li');
+            for (let i = 0; i < songsList.length; i++) {
+                let a = songsList[i].firstChild;
+                if (a.innerHTML.toLowerCase().indexOf(search) > -1) {
+                    songsList[i].style.display = "";
+                } else {
+                    songsList[i].style.display = "none";
+                }
+            }
+        }
+
+        function selectSong(anchorTag) {
+            $("#searchInput").val(anchorTag.textContent);
+            $("#chosenSongId").val(anchorTag.value);
+        }
+
+
+        async function getSongsFromPlaylist(playlistId, offset, limit) {
+            let response = await fetch(GET_SONGS + "/" + playlistId + "/tracks?offset=" + offset + "&limit=" + limit, {
+                method: "GET",
+                headers: new Headers({
+                    Authorization: "Bearer " + accessToken,
+                    Accept: "application/json"
+                }),
+            }).then((response) => {
+                if (response.status == 200) {
+                    return response;
+                } else if (response.status == 401) {
+                    console.log("need refresh token");
+                }
+            });
+
+            return await response.json();
+        }
+
+        function removeDuplicateSongs(songArray) {
+            let seen = {};
+            return songArray.filter(function(song) {
+                return seen[song.track.name] ? false: (seen[song.track.name] = true);
+            });
+        }
+
+        //]]>
+    </script>
+
+</head>
+<body>
+<div id="basePage">
+    <div id="header">
+        <div id="headerContents">
+            <a class="foreground" id="nebraskaLink" href="https://github.com/nburbach3" target="_blank">
+                <img th:src="@{/images/nebraskaN.png}" id="nebraskaImg">
+            </a>
+            <h1 class="foreground" id="headerTitle">My Heardle</h1>
+            <div id="spacer"></div>
+        </div>
+    </div>
+    <div id="game">
+        <div id="content">
+            <div id="guessBoxes">
+                <div id="guessBox1" class="guessBox">
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText foreground"></p>
+                </div>
+                <div id="guessBox2" class="guessBox">
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText foreground"></p>
+                </div>
+                <div id="guessBox3" class="guessBox">
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText foreground"></p>
+                </div>
+                <div id="guessBox4" class="guessBox">
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText foreground"></p>
+                </div>
+                <div id="guessBox5" class="guessBox">
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText foreground"></p>
+                </div>
+                <div id="guessBox6" class="guessBox">
+                    <div class="skipped" hidden="true"></div>
+                    <p class="skippedText spacedText" hidden="true">SKIPPED</p>
+                    <div class="wrong" hidden="true">
+                        <div class="wrongX1"></div>
+                        <div class="wrongX2"></div>
+                    </div>
+                    <div class="partiallyCorrect" hidden="true">
+                        <div class="partiallyCorrectX1"></div>
+                        <div class="partiallyCorrectX2"></div>
+                    </div>
+                    <div class="correct" hidden="true">
+                        <div class="correctX1"></div>
+                        <div class="correctX2"></div>
+                    </div>
+                    <p class="guessedSongText foreground"></p>
+                </div>
+            </div>
+        </div>
+        <div id="progressDiv">
+            <div id="progressBar">
+                <div id="play1" style="background-color: rgb(65, 65, 65);">
+                </div>
+                <div id="play2">
+                </div>
+                <div id="play3">
+                </div>
+                <div id="play4">
+                </div>
+                <div id="play5">
+                </div>
+                <div id="play6">
+                </div>
+            </div>
+        </div>
+        <div id="searchDiv">
+            <div id="playButtonRow">
+                <div id="currentTimePlayingDiv" class="row">
+                    <p id="currentTimePlayingText" class="foreground">0:00</p>
+                </div>
+                <div id="playButtonDiv" class="row">
+                    <button id="playButton" class="spacedText" disabled="true">
+                        <svg role="img" height="16" width="16" viewBox="0 0 16 16">
+                            <path
+                                    d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288V1.713z">
+                            </path>
+                        </svg>
+                    </button>
+                    <button id="pauseButton" onclick="pauseSong()" class="spacedText" hidden="true">
+                        <svg role="img" height="16" width="16" viewBox="0 0 16 16">
+                            <path
+                                    d="M2.7 1a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7H2.7zm8 0a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7h-2.6z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="totalTimeDiv" class="row">
+                    <p class="foreground">0:16</p>
+                </div>
+            </div>
+            <div id="searchBarRow">
+                <input id="searchInput" type="text" placeholder="Search for an artist / song title"
+                       onkeyup="filterSearch(this)">
+                <div id="songsDropdown" class="dropdown-content">
+                    <ul id="myUL">
+                    </ul>
+                    <div id="chosenSongId" hidden="true"></div>
+                </div>
+            </div>
+            <div id="submissionRow">
+                <div id="skipDiv" class="row">
+                    <button id="skipButton" class="spacedText" disabled="true">
+                        SKIP (+1s)
+                    </button>
+                </div>
+                <div id="resetDiv" class="row">
+                    <button id="resetButton" class="spacedText">
+                        RESET
+                    </button>
+                </div>
+                <div id="submitButtonDiv" class="row">
+                    <button id="submitButton" class="spacedText" disabled="true">
+                        SUBMIT
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="results" hidden="true">
+        <div id="resultImageDiv">
+            <img id="resultImage"></img>
+        </div>
+        <div id="resultSongDiv">
+            <h2 id="resultSong" class="foreground"></h2>
+        </div>
+        <button id="spotifyButton">
+            <a id="spotifyLink" target="_blank">Listen on Spotify</a>
+        </button>
+        <div id="resultMessageDiv">
+            <h3 id="resultMessage" class="foreground">
+
+            </h3>
+            <div id="resultBar">
+                <div id="resultGuess1">
+                </div>
+                <div id="resultGuess2">
+                </div>
+                <div id="resultGuess3">
+                </div>
+                <div id="resultGuess4">
+                </div>
+                <div id="resultGuess5">
+                </div>
+                <div id="resultGuess6">
+                </div>
+            </div>
+        </div>
+        <div id="playAgainDiv">
+            <button id="playAgainButton">
+                Play Again
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
