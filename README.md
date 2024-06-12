@@ -3,10 +3,11 @@
 MyHeardle is a web application inspired by Spotify's Heardle game. Listen to segments of a randomly selected song and make guesses as to what the song is. You have 6 attempts to get it right, using up to 16 seconds of the song.
 Play now here: https://my-heardle-latest.onrender.com/
 
-## Requirements
+## Requirements/Limitations
+**IN DEVELOPMENT MODE**
 
-This game requires a premium Spotify account to play. This is due to the restrictions put in place by Spotify's API.
-The game is currently hosted on Render using their free tier. Because of this, the web application will spin down after some inactivity, resulting in slow start-up times.
+This application is currently only available to specific users due to being in Spotify's development mode. Once approved to be in "extended quota" mode, the application will be available to anyone who has a premium Spotify account.
+The limitation to only allow premium users is a restriction put in place by Spotify's API.
 
 ## Background
 
