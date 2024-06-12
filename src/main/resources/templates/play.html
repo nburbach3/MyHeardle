@@ -45,7 +45,7 @@
                 window.location = "/";
             }
 
-            let test = Swal.fire({
+            Swal.fire({
                 title: "Loading game, please wait",
                 allowOutsideClick: false,
                 allowEscapeKey: false,
@@ -168,17 +168,43 @@
                 };
                 let url = PLAY_SONG + "?device_id=" + deviceId;
 
-                await fetch(url, {
-                    method: "PUT",
-                    headers: new Headers({
-                        Authorization: "Bearer " + accessToken,
-                    }),
-                    body: JSON.stringify(body)
-                }).then((response) => {
-                        if (response.status == 401) {
-                            console.log("need refresh token");
+                let retries = 5;
+
+                const playSongRequest = async () => {
+                    try {
+                        const response = await fetch(url, {
+                            method: "PUT",
+                            headers: new Headers({
+                                Authorization: "Bearer " + accessToken,
+                            }),
+                            body: JSON.stringify(body)
+                        });
+                        if (!response.ok) {
+                            throw new Error(`${response.status}`);
                         }
-                    });
+                    } catch (error) {
+                        if (error.message == "401" && retries > 0) {
+                            retries--;
+                            await refreshAccessToken();
+                            await playSongRequest();
+                        } else if (error.message == "403") {
+                            Swal.fire({
+                                type: "error",
+                                text: "You must have a Spotify Premium account to play this game."
+                            }).then(function() {
+                                window.location = "/";
+                            });
+                        } else {
+                            Swal.fire({
+                                type: "error",
+                                text: "There was an error trying to play the song. Going back to the login page"
+                            }).then(function() {
+                                window.location = "/";
+                            });
+                        }
+                    }
+                }
+                playSongRequest();
 
                 handleTime();
             });
@@ -293,16 +319,27 @@
             $("#playButton").show();
             let url = PAUSE_SONG + "?device_id=" + deviceId;
 
-            fetch(url, {
-                method: "PUT",
-                headers: new Headers({
-                    Authorization: "Bearer " + accessToken,
-                }),
-            }).then((response) => {
-                if (response.status == 401) {
-                    console.log("need refresh token");
+            const pauseSong = async () => {
+                try {
+                    let response = await fetch(url, {
+                        method: "PUT",
+                        headers: new Headers({
+                            Authorization: "Bearer " + accessToken,
+                        })
+                    });
+                    if (!response.ok) {
+                        throw new Error(`${response.status}`);
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        type: "error",
+                        text: "There was an error trying to pause the song. Going back to the login page"
+                    }).then(function() {
+                        window.location = "/";
+                    });
                 }
-            });
+            }
+            pauseSong();
         }
 
         function finishGame(correct) {
@@ -530,27 +567,65 @@
 
 
         async function getSongsFromPlaylist(playlistId, offset, limit) {
-            let response = await fetch(GET_SONGS + "/" + playlistId + "/tracks?offset=" + offset + "&limit=" + limit, {
-                method: "GET",
-                headers: new Headers({
-                    Authorization: "Bearer " + accessToken,
-                    Accept: "application/json"
-                }),
-            }).then((response) => {
-                if (response.status == 200) {
-                    return response;
-                } else if (response.status == 401) {
-                    console.log("need refresh token");
+            let songs;
+            let retries = 5;
+            const getSongs = async () => {
+                try {
+                    let response = await fetch(GET_SONGS + "/" + playlistId + "/tracks?offset=" + offset + "&limit=" + limit, {
+                        method: "GET",
+                        headers: new Headers({
+                            Authorization: "Bearer " + accessToken,
+                            Accept: "application/json"
+                        }),
+                    });
+                    if (!response.ok) {
+                        throw new Error(`${response.status}`);
+                    }
+                    songs = response;
+                } catch (error) {
+                    if (error.message == "401" && retries > 0) {
+                        retries--;
+                        await refreshAccessToken();
+                        await getSongs();
+                    } else if (error.message == "403") {
+                        Swal.fire({
+                            type: "error",
+                            text: "You must have a Spotify Premium account to play this game."
+                        }).then(function() {
+                            window.location = "/";
+                        });
+                    } else {
+                        Swal.fire({
+                            type: "error",
+                            text: "There was an error trying to play the song. Going back to the login page"
+                        }).then(function() {
+                            window.location = "/";
+                        });
+                    }
                 }
-            });
+            }
+            await getSongs();
 
-            return await response.json();
+            return await songs.json();
         }
 
         function removeDuplicateSongs(songArray) {
             let seen = {};
             return songArray.filter(function(song) {
                 return seen[song.track.name] ? false: (seen[song.track.name] = true);
+            });
+        }
+
+        async function refreshAccessToken() {
+            $.ajax({
+                url: "/token/" + refreshToken,
+                type: "POST",
+                success: function(response) {
+                    accessToken = response.access_token;
+                },
+                error: function(error) {
+                    window.location = "/";
+                }
             });
         }
 

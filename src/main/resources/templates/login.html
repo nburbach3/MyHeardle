@@ -6,35 +6,68 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" th:href="@{/css/login.css}">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/sweetalert2@8"></script>
 
 
     <script>
         const redirect_uri = "https://my-heardle-latest.onrender.com";
         const AUTH_URL = "https://accounts.spotify.com/authorize?client_id=b88b3a6cf46c40daa767463a7f94c15e&response_type=code"
-        + "&redirect_uri=" + encodeURI(redirect_uri) + "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private"
+        + "&redirect_uri=" + encodeURI(redirect_uri) + "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private";
 
         const code = new URLSearchParams(window.location.search).get("code");
 
         $(document).ready(function () {
-            $("#spotifyLoginButton").on("click", function() {
-                window.location.href = AUTH_URL;
-            });
-
             if (code) {
+                playGame();
+            }
+        });
+
+        function playGame() {
+            let retries = 5;
+
+            Swal.fire({
+                title: "Loading game, please wait",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false,
+                animation: false,
+                onOpen: function() {
+                    Swal.showLoading();
+                }
+            });
+            const playGameRequest = () => {
                 $.ajax({
                     url: "/play",
                     type: "POST",
                     contentType: "application/json",
                     data: code,
+                    showLoading: true,
                     success: function(response) {
-                        window.location.href = "/play";
+                        window.location = "/play";
                     },
                     error: function(error) {
-                        console.log(error);
+                        //Due to the slow nature of Render's free version, the client secret may not be loaded right away
+                        if (error.status == 400 && retries > 0) {
+                            retries--;
+                            setTimeout(() => {
+                                playGameRequest();
+                            }, "1000");
+                        } else if (error.status == 400) {
+                            Swal.fire({
+                                type: "error",
+                                text: "There was an issue loading the game. Please try refreshing the page"
+                            });
+                        }
                     }
                 });
             }
-        });
+            playGameRequest();
+        }
+
+        function loginToSpotify() {
+            window.location = AUTH_URL;
+        }
     </script>
 </head>
 
@@ -42,7 +75,7 @@
 <div id="loginBasePage">
     <div id="loginDiv">
         <h1 id="myHeardleTitle">My Heardle</h1>
-        <button id="spotifyButton">
+        <button id="spotifyButton" onclick="loginToSpotify()">
             <a id="spotifyLoginButton">Login To Spotify</a>
         </button>
     </div>

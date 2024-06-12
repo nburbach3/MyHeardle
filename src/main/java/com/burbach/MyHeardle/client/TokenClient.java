@@ -48,11 +48,7 @@ public class TokenClient {
         formUrlEncodedParams.add("grant_type", REFRESH_TOKEN);
         formUrlEncodedParams.add("refresh_token", refreshToken);
 
-        try {
-            return webClientWrapper.callPostEndpoint(URI.create(TOKEN), headers, formUrlEncodedParams, Token.class).getBody();
-        } catch (Exception e) {
-            throw new RuntimeException("Error when calling endpoint: " + TOKEN + " for refresh token: " + refreshToken, e);
-        }
+        return webClientWrapper.callPostEndpoint(URI.create(TOKEN), headers, formUrlEncodedParams, Token.class).getBody();
     }
 
     public Token getAccessTokenFromCode(String code) {
@@ -66,10 +62,6 @@ public class TokenClient {
         formUrlEncodedParams.add("code", code);
         formUrlEncodedParams.add("redirect_uri", redirectUri);
 
-        try {
-            return webClientWrapper.callPostEndpoint(URI.create(TOKEN), headers, formUrlEncodedParams, Token.class).getBody();
-        } catch (Exception e) {
-            throw new RuntimeException("Error when calling endpoint: " + TOKEN + " for code: " + code, e);
-        }
+        return webClientWrapper.callPostEndpoint(URI.create(TOKEN), headers, formUrlEncodedParams, Token.class).getBody();
     }
 }

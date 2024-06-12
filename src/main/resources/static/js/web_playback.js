@@ -22,27 +22,9 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                 headers: new Headers({
                     Authorization: "Bearer " + accessToken,
                 }),
-            }).then((response) => {
-                if (response.status != 204) {
-                    console.log(response);
-                }
             });
          };
          connect_to_device();
-    });
-
-    player.addListener("not_ready", ({ device_id }) => {
-         console.log("Device ID has gone offline", device_id);
-    });
-
-    player.addListener("initialization_error", ({ message }) => {
-        console.error(message);
-    });
-    player.addListener("authentication_error", ({ message }) => {
-        console.error(message);
-    });
-    player.addListener("account_error", ({ message }) => {
-        console.error(message);
     });
 
     player.connect();
