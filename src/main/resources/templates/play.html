@@ -45,6 +45,8 @@
                 window.location = "/";
             }
 
+            setStatistics();
+
             Swal.fire({
                 title: "Loading game, please wait",
                 allowOutsideClick: false,
@@ -58,6 +60,12 @@
             });
             setupGame().then(function() {
                 Swal.close();
+
+                //If the user doesn't have any stats, show the how-to-play modal
+                let userStats = JSON.parse(localStorage.getItem("userStats"));
+                if (!userStats) {
+                    $("#howToPlayButton").click();
+                }
             });
 
 
@@ -131,6 +139,39 @@
 
             $("#informationButton").click(function () {
                 $("#informationModalContainer").addClass("showModal");
+            });
+
+            $(document).keydown(function (event) {
+                if (event.key == "Escape") {
+                    if ($("#informationModalContainer").hasClass("showModal")) {
+                        $("#informationModalCloseButton").click();
+                    }
+                    if ($("#supportModalContainer").hasClass("showModal")) {
+                        $("#supportModalCloseButton").click();
+                    }
+                    if ($("#statsModalContainer").hasClass("showModal")) {
+                        $("#statsModalCloseButton").click();
+                    }
+                    if ($("#howToPlayModalContainer").hasClass("showModal")) {
+                        $("#howToPlayModalCloseButton").click();
+                    }
+                }
+            });
+
+            $("#informationButton").keydown(function (event) {
+                this.blur();
+            });
+
+            $("#supportButton").keydown(function (event) {
+                this.blur();
+            });
+
+            $("#statsButton").keydown(function (event) {
+                this.blur();
+            });
+
+            $("#howToPlayButton").keydown(function (event) {
+                this.blur();
             });
 
             $("#informationModalCloseButton").click(function () {
@@ -347,6 +388,17 @@
             }, 10);
         }
 
+        function setStatistics() {
+            let userStats = JSON.parse(localStorage.getItem("userStats"));
+            if (userStats) {
+                $("#wonStats").text(userStats.won);
+                $("#playedStats").text(userStats.played);
+                let percent = (userStats.won / userStats.played) * 100;
+                percent = percent.toFixed(2);
+                $("#percentStats").text(percent);
+            }
+        }
+
         function pauseSong() {
             $("#progressBar").addClass("paused");
             $("#pauseButton").hide();
@@ -412,6 +464,29 @@
 
             $("#game").attr('hidden', true);
             $("#results").attr('hidden', false);
+
+
+            let userStats = JSON.parse(localStorage.getItem("userStats"));
+
+            if (!userStats) {
+                userStats = {
+                    won: 0,
+                    played: 0,
+                }
+            }
+
+            if (correct == true) {
+                userStats.won += 1;
+            }
+            userStats.played += 1;
+
+            $("#wonStats").text(userStats.won);
+            $("#playedStats").text(userStats.played);
+            let percent = (userStats.won / userStats.played) * 100;
+            percent = percent.toFixed(2);
+            $("#percentStats").text(percent);
+
+            localStorage.setItem("userStats", JSON.stringify(userStats));
         }
 
         function setInitialResults(randomSong) {
@@ -693,7 +768,7 @@
                     </button>
                 </div>
                 <div class="modalText">
-                    <p class="foreground">My friends and I played Heardle daily for months until they discontinued it. This project was intended to revive the fun we had and allow others to do the same.</p>
+                    <p class="foreground">My friends and I played Heardle daily for months until Spotify discontinued it. This project was intended to revive the fun we had and allow others to do the same.</p>
                     <p class="foreground">If you want to show some love, feel free to star the <a id="gitHubLink" href="https://github.com/nburbach3/MyHeardle" target="_blank">Github Repo</a> or send me an email at nickb2000@live.com to share feedback.</p>
                 </div>
             </div>
@@ -706,8 +781,19 @@
                         <svg class="w-7 h-7 foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
-                <div class="modalText">
-
+                <div class="modalText foreground" id="statsModalText">
+                    <div class="statColumn">
+                        <h1 class="statsTextTitle">Won:</h1>
+                        <h1 id="wonStats">0</h1>
+                    </div>
+                    <div class="statColumn">
+                        <h1 class="statsTextTitle">Played:</h1>
+                        <h1 id="playedStats">0</h1>
+                    </div>
+                    <div class="statColumn">
+                        <h1 class="statsTextTitle">Win %:</h1>
+                        <h1><span id="percentStats">0.00</span><span>%</span></h1>
+                    </div>
                 </div>
             </div>
         </div>
@@ -722,6 +808,12 @@
                 <div class="modalText" id="howToPlayModalText">
                     <div id="howToPlayText">
                         <p class="foreground">When you make a guess, the following corresponds to the result:</p>
+                    </div>
+                    <div id="howToPlaySkip" class="howToPlayIcon">
+                        <div class="skipped" id="skipIcon"></div>
+                        <div id="howToPlaySkipText" class="howToPlayIconText">
+                            <p class="foreground">You skipped your guess</p>
+                        </div>
                     </div>
                     <div id="howToPlayWrong" class="howToPlayIcon">
                         <div class="outerIconDiv">
@@ -739,12 +831,6 @@
                         </div>
                         <div id="howToPlayPartialText" class="howToPlayIconText">
                             <p class="foreground">The song is incorrect but there is at least 1 correct artist</p>
-                        </div>
-                    </div>
-                    <div id="howToPlaySkip" class="howToPlayIcon">
-                        <div class="skipped" id="skipIcon"></div>
-                        <div id="howToPlaySkipText" class="howToPlayIconText">
-                            <p class="foreground">You skipped your guess</p>
                         </div>
                     </div>
                     <div id="howToPlayCorrect" class="howToPlayIcon">
