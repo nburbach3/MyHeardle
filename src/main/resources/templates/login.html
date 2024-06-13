@@ -26,7 +26,7 @@
             let retries = 5;
 
             Swal.fire({
-                title: "Loading game, please wait",
+                title: "Loading... please wait",
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 allowEnterKey: false,
@@ -53,7 +53,7 @@
                             setTimeout(() => {
                                 playGameRequest();
                             }, "1000");
-                        } else if (error.status == 400) {
+                        } else {
                             Swal.fire({
                                 type: "error",
                                 text: "There was an issue loading the game. Please try refreshing the page"

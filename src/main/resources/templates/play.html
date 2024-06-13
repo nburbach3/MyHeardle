@@ -128,6 +128,40 @@
                 location.reload();
             });
 
+
+            $("#informationButton").click(function () {
+                $("#informationModalContainer").addClass("showModal");
+            });
+
+            $("#informationModalCloseButton").click(function () {
+                $("#informationModalContainer").removeClass("showModal");
+            });
+
+            $("#supportButton").click(function () {
+                $("#supportModalContainer").addClass("showModal");
+            });
+
+            $("#supportModalCloseButton").click(function () {
+                $("#supportModalContainer").removeClass("showModal");
+            });
+
+            $("#statsButton").click(function () {
+                $("#statsModalContainer").addClass("showModal");
+            });
+
+            $("#statsModalCloseButton").click(function () {
+                $("#statsModalContainer").removeClass("showModal");
+            });
+
+            $("#howToPlayButton").click(function () {
+                $("#howToPlayModalContainer").addClass("showModal");
+            });
+
+            $("#howToPlayModalCloseButton").click(function () {
+                $("#howToPlayModalContainer").removeClass("showModal");
+            });
+
+
             $("#playButton").click(async function() {
                 $("#playButton").hide();
                 $("#pauseButton").show();
@@ -636,12 +670,109 @@
 <body>
 <div id="basePage">
     <div id="header">
+        <div class="modalContainer" id="informationModalContainer">
+            <div class="modal" id="informationModal">
+                <div class="modalTitle">
+                    <h3 class="modalTitleText foreground">About</h3>
+                    <button class="modalCloseButton" id="informationModalCloseButton">
+                        <svg class="w-7 h-7 foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="modalText">
+                    <p class="foreground">Listen to up to 16 seconds of a song, attempting to guess the name within 6 tries.</p>
+                    <p class="foreground">Unlike the original Heardle, you may play with a new song as many times as you like! Just hit the reset button or refresh the page.</p>
+                </div>
+            </div>
+        </div>
+        <div class="modalContainer" id="supportModalContainer">
+            <div class="modal" id="supportModal">
+                <div class="modalTitle">
+                    <h3 class="modalTitleText foreground">Support</h3>
+                    <button class="modalCloseButton" id="supportModalCloseButton">
+                        <svg class="w-7 h-7 foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="modalText">
+                    <p class="foreground">My friends and I played Heardle daily for months until they discontinued it. This project was intended to revive the fun we had and allow others to do the same.</p>
+                    <p class="foreground">If you want to show some love, feel free to star the <a id="gitHubLink" href="https://github.com/nburbach3/MyHeardle" target="_blank">Github Repo</a> or send me an email at nickb2000@live.com to share feedback.</p>
+                </div>
+            </div>
+        </div>
+        <div class="modalContainer" id="statsModalContainer">
+            <div class="modal" id="statsModal">
+                <div class="modalTitle">
+                    <h3 class="modalTitleText foreground">Stats</h3>
+                    <button class="modalCloseButton" id="statsModalCloseButton">
+                        <svg class="w-7 h-7 foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="modalText">
+
+                </div>
+            </div>
+        </div>
+        <div class="modalContainer" id="howToPlayModalContainer">
+            <div class="modal" id="howToPlayModal">
+                <div class="modalTitle">
+                    <h3 class="modalTitleText foreground">How To Play</h3>
+                    <button class="modalCloseButton" id="howToPlayModalCloseButton">
+                        <svg class="w-7 h-7 foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="modalText" id="howToPlayModalText">
+                    <div id="howToPlayText">
+                        <p class="foreground">When you make a guess, the following corresponds to the result:</p>
+                    </div>
+                    <div id="howToPlayWrong" class="howToPlayIcon">
+                        <div class="outerIconDiv">
+                            <div class="wrongX1"></div>
+                            <div class="wrongX2"></div>
+                        </div>
+                        <div id="howToPlayWrongText" class="howToPlayIconText">
+                            <p class="foreground">The song and all artists are incorrect</p>
+                        </div>
+                    </div>
+                    <div id="howToPlayPartial" class="howToPlayIcon">
+                        <div class="outerIconDiv">
+                            <div class="partiallyCorrectX1"></div>
+                            <div class="partiallyCorrectX2"></div>
+                        </div>
+                        <div id="howToPlayPartialText" class="howToPlayIconText">
+                            <p class="foreground">The song is incorrect but there is at least 1 correct artist</p>
+                        </div>
+                    </div>
+                    <div id="howToPlaySkip" class="howToPlayIcon">
+                        <div class="skipped" id="skipIcon"></div>
+                        <div id="howToPlaySkipText" class="howToPlayIconText">
+                            <p class="foreground">You skipped your guess</p>
+                        </div>
+                    </div>
+                    <div id="howToPlayCorrect" class="howToPlayIcon">
+                        <div class="outerIconDiv">
+                            <div class="correctX1"></div>
+                            <div class="correctX2"></div>
+                        </div>
+                        <div id="howToPlayCorrectText" class="howToPlayIconText">
+                            <p class="foreground">You got the correct song!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="headerContents">
-            <a class="foreground" id="nebraskaLink" href="https://github.com/nburbach3" target="_blank">
-                <img th:src="@{/images/nebraskaN.png}" id="nebraskaImg">
-            </a>
+            <button class="headerButton" id="informationButton">
+                <svg xmlns="http://www.w3.org/2000/svg" class="foreground" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            </button>
+            <button class="headerButton" id="supportButton">
+                <svg xmlns="http://www.w3.org/2000/svg" class="foreground" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            </button>
             <h1 class="foreground" id="headerTitle">My Heardle</h1>
-            <div id="spacer"></div>
+            <button class="headerButton" id="statsButton">
+                <svg xmlns="http://www.w3.org/2000/svg" class="foreground" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            </button>
+            <button class="headerButton" id="howToPlayButton">
+                <svg xmlns="http://www.w3.org/2000/svg" class="foreground" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </button>
         </div>
     </div>
     <div id="game">
@@ -818,6 +949,10 @@
                     </button>
                 </div>
             </div>
+        </div>
+        <hr id="hrFooter">
+        <div id="footer" class="foreground">
+            <p>Created by Nick Burbach</p>
         </div>
     </div>
     <div id="results" hidden="true">

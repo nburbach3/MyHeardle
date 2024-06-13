@@ -3,6 +3,117 @@ body {
     padding: 0px;
 }
 
+#gitHubLink:visited {
+    color: blue;
+}
+
+#howToPlayModalText {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    height: 100%;
+}
+
+.outerIconDiv {
+    min-width: 25px;
+    min-height: 25px;
+}
+
+#howToPlayText {
+    padding-bottom: 10px;
+}
+
+.howToPlayIconText {
+    padding-left: 40px;
+}
+
+.howToPlayIcon {
+    display: flex;
+    min-height: 50px;
+    align-items: center;
+    width: 100%;
+}
+
+#skipIcon {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+.modalTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1 1 0%;
+}
+
+.modalText {
+    letter-spacing: 1px;
+    font-size: 15px;
+}
+
+.modalTitleText {
+    flex-grow: 1;
+    justify-content: center;
+    display: flex;
+    margin: 0;
+}
+
+.modal {
+    background-color: #212121;
+    padding: 30px 50px;
+    width: 500px;
+    max-width: 100%;
+    margin-bottom: 275px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.modalContainer {
+    background-color: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    transition: opacity 0.3s ease;
+}
+
+.modalContainer.showModal {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modalCloseButton {
+    height: 25px;
+    width: 25px;
+    align-items: center;
+    display: flex;
+    background-color: #121212;
+    border: #121212;
+}
+
+.headerButton {
+    background-color: #121212;
+    border: #121212;
+}
+
+#hrFooter {
+    margin-top: 25px;
+    max-width: 800px;
+}
+
+#footer {
+    padding-top: 10px;
+    text-align: center;
+}
+
 #basePage {
     background-color: #121212;
     min-height: 100vh;
@@ -86,17 +197,6 @@ body {
     flex-grow: 1;
 }
 
-#nebraskaImg {
-    width: 60px;
-    height: 35px;
-}
-
-#nebraskaLink {
-    width: 60px;
-    height: 35px;
-    flex-grow: 1;
-}
-
 #header {
     padding: 0px;
     height: 57px;
@@ -106,9 +206,11 @@ body {
 }
 
 #headerContents {
-    width: 768px;
+    width: 800px;
     display: flex;
     padding: 8px 4px;
+    align-items: center;
+    text-align: center;
 }
 
 #headerTitle {
@@ -118,9 +220,6 @@ body {
     font-weight: 700;
     line-height: 36px;
     letter-spacing: -0.04em;
-}
-
-#spacer {
     flex-grow: 1;
 }
 
