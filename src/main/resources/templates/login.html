@@ -12,7 +12,7 @@
     <script>
         const redirect_uri = "https://my-heardle-latest.onrender.com";
         const AUTH_URL = "https://accounts.spotify.com/authorize?client_id=b88b3a6cf46c40daa767463a7f94c15e&response_type=code"
-        + "&redirect_uri=" + encodeURI(redirect_uri) + "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private";
+        + "&redirect_uri=" + encodeURI(redirect_uri) + "&scope=user-read-private user-read-email user-modify-playback-state streaming playlist-read-private";
 
         const code = new URLSearchParams(window.location.search).get("code");
 
@@ -74,7 +74,8 @@
 <body>
 <div id="loginBasePage">
     <div id="loginDiv">
-        <h1 id="myHeardleTitle">My Heardle</h1>
+        <h1 class="foreground">Welcome to My Heardle!</h1>
+        <h2 class="foreground">In order to proceed, you will need a premium Spotify account.</h2>
         <button id="spotifyButton" onclick="loginToSpotify()">
             <a id="spotifyLoginButton">Login To Spotify</a>
         </button>

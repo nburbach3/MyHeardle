@@ -502,6 +502,7 @@
                     songName += randomSong.track.artists[i].name + ", ";
                 }
             }
+            $("#resultAlbum").text("Album: " + randomSong.track.album.name);
             $("#resultSong").text(songName);
             $("#spotifyLink").attr('href', randomSong.track.external_urls.spotify);
         }
@@ -1043,10 +1044,13 @@
     </div>
     <div id="results" hidden="true">
         <div id="resultImageDiv">
-            <img id="resultImage"></img>
+            <img id="resultImage" alt="Song Image">
         </div>
         <div id="resultSongDiv">
             <h2 id="resultSong" class="foreground"></h2>
+        </div>
+        <div id="resultAlbumDiv">
+            <h3 id="resultAlbum" class="foreground"></h3>
         </div>
         <button id="spotifyButton">
             <a id="spotifyLink" target="_blank">Listen on Spotify</a>
