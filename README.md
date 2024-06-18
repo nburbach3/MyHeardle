@@ -2,7 +2,7 @@
 
 MyHeardle is a web application inspired by Spotify's Heardle game. Listen to segments of a randomly selected song and make guesses as to what the song is. You have 6 attempts to get it right, using up to 16 seconds of the song.
 
-Play now here: https://my-heardle-latest.onrender.com/
+https://my-heardle-latest.onrender.com/
 
 ## Requirements/Limitations
 **IN DEVELOPMENT MODE**
