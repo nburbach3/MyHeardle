@@ -22,6 +22,7 @@ My colleagues and I used to enjoy playing Heardle daily, but Spotify discontinue
   * A Spring Boot back-end was added to handle authorization calls, making use of Render's environment variables to securely store the client's secret.
 * **Custom Genre/Playlist Selection:** Allow users to choose a genre or playlist instead of being restricted to a pre-determined playlist.
 * **Leaderboard and Statistics:** Implement a system for maintaining a leaderboard and user statistics.
+  * Users may see their statistics by clicking the stats icon. This data utilizes local storage, so a user may view their statistics even after navigating away from the page.
 
 
 ## Example Gameplay
